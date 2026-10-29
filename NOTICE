@@ -1,0 +1,89 @@
+NOTICE
+======
+
+This repository's own code and documentation are Copyright 2026 the authors
+of this repository, licensed under the Apache License, Version 2.0 (see
+LICENSE). The one exception is `fw/`, which predates the Apache-2.0 choice
+and is kept under its own original MIT license (`fw/LICENSE`), unchanged
+from how it was first published.
+
+Third-party material included as-is
+------------------------------------
+
+- `tools/csr-dfu-parser-ref/` — a CSR DFU container parser (an 010 Editor
+  template and script) from `ramikg/csr-dfu-parser`
+  (https://github.com/ramikg/csr-dfu-parser). Released under
+  the Unlicense (public domain); its own LICENSE file is kept alongside it.
+  Included here because it documents the same container format this
+  project's own tools (`tools/csr/csrdfu.py`, `csrpack.py`, `csrfspack.py`,
+  `csrverify.py` — note this is a separate, simpler report-only parser from
+  the top-level `tools/csrdfu.py` that `docs/clean-room-rebuild.md` uses
+  for extraction) independently implement and build on.
+
+Third-party material referenced but NOT included
+--------------------------------------------------
+
+The following are used by this project but are not redistributed in this
+repository, because this project does not hold the right to redistribute
+them. You will need to obtain each of these yourself if you want to rebuild
+or flash anything here; see `docs/toolchain.md` and
+`docs/clean-room-rebuild.md` for exactly how each is used.
+
+- **Bose's own firmware** for this product (any `.dfu`, extracted
+  filesystem content, voice prompts, or disassembly listing of it). This
+  project's tools operate on a copy you download directly from Bose.
+- **The CSR/Qualcomm ADK** (versions 4.3.1 and 4.4) and its bundled
+  BlueSuite tools — vendor-licensed development kits for CSR867x-family
+  Bluetooth chips, obtained separately from Qualcomm/CSR's own
+  distribution for chip developers.
+- **CSR's "AN093" DFU File Format Specification** — a vendor document
+  whose own text carries a non-disclosure notice; this project's own
+  independent, clean-room re-derivation of the parts of that format it
+  needs is in `docs/dfu-signature-scheme.md` and `tools/csr/`, not a copy
+  of or excerpt from that document.
+- **`bose-dfu`**, the third-party command-line tool this project's flash
+  scripts invoke to talk to the speaker's USB DFU interface (not bundled;
+  obtain it from its own upstream project, `tchebb/bose-dfu`
+  (https://github.com/tchebb/bose-dfu), and credit it there).
+- **`innoextract`**, used only to unpack the ADK's Inno Setup installers;
+  a separate, independently licensed (zlib/Boost-family) tool, not bundled.
+
+Derived reference tables
+--------------------------
+
+`tools/csr/pskeys_gordon.json`, `tools/traps-bluelab73.json`, and
+`tools/traps-bluelab74.json` are name-to-number lookup tables (persistent-store
+key names, firmware trap names), derived by this project from the ADK's own
+header files during development. They are facts about an interface (names and
+numbers), not creative content, and are also documented independently elsewhere
+by others working with this chip family.
+
+`build/hook/slack_pool.json` holds derived linear-algebra coefficients (a digest
+function's measured per-position contribution, computed by probing the vendor
+build tool as a black-box oracle — see `docs/dfu-signature-scheme.md`), not a
+copy of any stock firmware bytes. Separately, `docs/FACTS.md` (fact F263) quotes
+one 10-word official persistent-store default value, identical across every
+released firmware version for this product (not device-specific, not secret —
+config defaults, not content), for documentation completeness.
+
+Trademarks
+----------
+
+"Bose" and "SoundLink" are trademarks of Bose Corporation. "CSR", "BlueCore",
+and "Kalimba" are associated with Qualcomm Technologies International, Ltd.
+(formerly Cambridge Silicon Radio). They are used in this repository only to
+accurately identify the hardware this project targets, not to imply any
+endorsement, affiliation, or sponsorship by either company.
+
+Not included at all
+--------------------
+
+Device-specific data — any readback of a real device's flash contents,
+any file under a `private/` directory, Bluetooth link keys, device serial
+numbers, or any other personal-device identifier — is not included in
+this repository and was never part of any export from the original
+project repository that produced this one. The `.gitignore` patterns for
+`build/hook/*_readback.dfu`, `build/hook/*_flash.log`, `firmware/`,
+`adk/`, and `private/` are the main guard against ever accidentally
+committing such data in the future; if you fork or contribute to this
+repository, do not loosen or remove them.

@@ -1,0 +1,1788 @@
+{
+ "name": "probe367",
+ "description": "Product: plays the brown-noise payload already staged in partition 2 by probe346, through the stock tone path with the 512-sample ring-buffer fix. Flash this SECOND, after probe346 has reported a successful write; see docs/ring-buffer-fix.md.",
+ "source_file": "Minnow_3.0.3_stack_plus_app.dfu",
+ "source_size": 1761440,
+ "source_sha256": "5ae3bc9655af1b80eb78ebe3610eb58473edd715c885f8cdffc3f1b66be4659e",
+ "output_size": 1761440,
+ "output_sha256": "e171cf76fabbe384b736d08db02da6756fb45723797eb5fa59364cc56ec7ac1e",
+ "edit_count": 355,
+ "edit_bytes": 3130,
+ "edits": [
+  {
+   "offset": 1006134,
+   "length": 1,
+   "new": "2b"
+  },
+  {
+   "offset": 1006136,
+   "length": 1,
+   "new": "1a"
+  },
+  {
+   "offset": 1006138,
+   "length": 1,
+   "new": "28"
+  },
+  {
+   "offset": 1006140,
+   "length": 1,
+   "new": "69"
+  },
+  {
+   "offset": 1006142,
+   "length": 1,
+   "new": "8c"
+  },
+  {
+   "offset": 1006145,
+   "length": 1,
+   "new": "1c"
+  },
+  {
+   "offset": 1006147,
+   "length": 1,
+   "new": "33"
+  },
+  {
+   "offset": 1006149,
+   "length": 1,
+   "new": "4c"
+  },
+  {
+   "offset": 1006151,
+   "length": 1,
+   "new": "8a"
+  },
+  {
+   "offset": 1006156,
+   "length": 1,
+   "new": "12"
+  },
+  {
+   "offset": 1006158,
+   "length": 1,
+   "new": "0d"
+  },
+  {
+   "offset": 1006160,
+   "length": 1,
+   "new": "14"
+  },
+  {
+   "offset": 1006200,
+   "length": 1,
+   "new": "05"
+  },
+  {
+   "offset": 1006204,
+   "length": 1,
+   "new": "2b"
+  },
+  {
+   "offset": 1006206,
+   "length": 1,
+   "new": "13"
+  },
+  {
+   "offset": 1006210,
+   "length": 1,
+   "new": "1c"
+  },
+  {
+   "offset": 1006214,
+   "length": 1,
+   "new": "0f"
+  },
+  {
+   "offset": 1006216,
+   "length": 1,
+   "new": "13"
+  },
+  {
+   "offset": 1006222,
+   "length": 1,
+   "new": "29"
+  },
+  {
+   "offset": 1006224,
+   "length": 1,
+   "new": "19"
+  },
+  {
+   "offset": 1006226,
+   "length": 1,
+   "new": "14"
+  },
+  {
+   "offset": 1006262,
+   "length": 1,
+   "new": "01"
+  },
+  {
+   "offset": 1006272,
+   "length": 1,
+   "new": "01"
+  },
+  {
+   "offset": 1006274,
+   "length": 1,
+   "new": "06"
+  },
+  {
+   "offset": 1006276,
+   "length": 1,
+   "new": "10"
+  },
+  {
+   "offset": 1006280,
+   "length": 1,
+   "new": "1c"
+  },
+  {
+   "offset": 1246729,
+   "length": 1,
+   "new": "04"
+  },
+  {
+   "offset": 1246731,
+   "length": 1,
+   "new": "d4"
+  },
+  {
+   "offset": 1246733,
+   "length": 1,
+   "new": "d5"
+  },
+  {
+   "offset": 1263940,
+   "length": 11,
+   "new": "140014000ffc14000ffc14"
+  },
+  {
+   "offset": 1263952,
+   "length": 2,
+   "new": "0ffc"
+  },
+  {
+   "offset": 1263994,
+   "length": 6,
+   "new": "14000ffc1400"
+  },
+  {
+   "offset": 1273974,
+   "length": 28,
+   "new": "14000ffa0bf8270300478416002bf0e1000200f19c8284000008e03c"
+  },
+  {
+   "offset": 1278210,
+   "length": 6,
+   "new": "140014000ffe"
+  },
+  {
+   "offset": 1278217,
+   "length": 9,
+   "new": "51f41a142ce0141400"
+  },
+  {
+   "offset": 1278262,
+   "length": 8,
+   "new": "001010a00023e080"
+  },
+  {
+   "offset": 1278272,
+   "length": 2,
+   "new": "0ffe"
+  },
+  {
+   "offset": 1295926,
+   "length": 6,
+   "new": "140014000ffe"
+  },
+  {
+   "offset": 1295933,
+   "length": 17,
+   "new": "0200c69c82002ee07d1703001fe0b91400"
+  },
+  {
+   "offset": 1311672,
+   "length": 26,
+   "new": "14000ff9004084020002f084000200a79ce384000001e0771400"
+  },
+  {
+   "offset": 1312438,
+   "length": 20,
+   "new": "140014000fe7000ef4400001004f9c59000ee03b"
+  },
+  {
+   "offset": 1312459,
+   "length": 7,
+   "new": "03e0150fe71400"
+  },
+  {
+   "offset": 1312502,
+   "length": 8,
+   "new": "00478458000ef021"
+  },
+  {
+   "offset": 1312511,
+   "length": 17,
+   "new": "0200a59c468400000ef41b142e000ee0fa"
+  },
+  {
+   "offset": 1319676,
+   "length": 3,
+   "new": "140014"
+  },
+  {
+   "offset": 1319680,
+   "length": 18,
+   "new": "0ffa000100939cdc8400f41ae01514000ffa"
+  },
+  {
+   "offset": 1319734,
+   "length": 28,
+   "new": "000100419c1ee0011703000200979cbf0ff80ffa14000ffa14000ffa"
+  },
+  {
+   "offset": 1351234,
+   "length": 16,
+   "new": "140014000ffd0bf827030002e0361400"
+  },
+  {
+   "offset": 1352374,
+   "length": 4,
+   "new": "14000ffe"
+  },
+  {
+   "offset": 1352379,
+   "length": 23,
+   "new": "0100579c688400004af4c21703001084000009e0160ffe"
+  },
+  {
+   "offset": 1357046,
+   "length": 20,
+   "new": "14000ffef025e001100100101420000300839c99"
+  },
+  {
+   "offset": 1357067,
+   "length": 7,
+   "new": "221070e0150ffe"
+  },
+  {
+   "offset": 1357112,
+   "length": 4,
+   "new": "00101412"
+  },
+  {
+   "offset": 1357117,
+   "length": 11,
+   "new": "0300829c7d0ff800108415"
+  },
+  {
+   "offset": 1357129,
+   "length": 9,
+   "new": "40f07f0040e07a1400"
+  },
+  {
+   "offset": 1390140,
+   "length": 2,
+   "new": "1400"
+  },
+  {
+   "offset": 1390144,
+   "length": 2,
+   "new": "0ffd"
+  },
+  {
+   "offset": 1390147,
+   "length": 12,
+   "new": "0200429c180ff814000ffd14"
+  },
+  {
+   "offset": 1390160,
+   "length": 2,
+   "new": "0ffd"
+  },
+  {
+   "offset": 1391606,
+   "length": 2,
+   "new": "1400"
+  },
+  {
+   "offset": 1391609,
+   "length": 6,
+   "new": "000ffc0bf814"
+  },
+  {
+   "offset": 1391616,
+   "length": 8,
+   "new": "270027020005e0fa"
+  },
+  {
+   "offset": 1394166,
+   "length": 14,
+   "new": "14000ff9000214002701002a1075"
+  },
+  {
+   "offset": 1394181,
+   "length": 13,
+   "new": "7b14b300ff00d39c7be0140ff9"
+  },
+  {
+   "offset": 1394230,
+   "length": 3,
+   "new": "140027"
+  },
+  {
+   "offset": 1394234,
+   "length": 14,
+   "new": "27020002140027010001e0991400"
+  },
+  {
+   "offset": 1394510,
+   "length": 1,
+   "new": "14"
+  },
+  {
+   "offset": 1394512,
+   "length": 2,
+   "new": "0ffa"
+  },
+  {
+   "offset": 1394550,
+   "length": 17,
+   "new": "002a1074007b14b300ff00d39cc0140027"
+  },
+  {
+   "offset": 1394568,
+   "length": 4,
+   "new": "27020002"
+  },
+  {
+   "offset": 1394573,
+   "length": 5,
+   "new": "00e0140ffa"
+  },
+  {
+   "offset": 1394614,
+   "length": 28,
+   "new": "2701002a1073007b14b300ff00d39c9f14000ff80bfe0001e0b40ffa"
+  },
+  {
+   "offset": 1394743,
+   "length": 4,
+   "new": "000ff414"
+  },
+  {
+   "offset": 1394748,
+   "length": 22,
+   "new": "0ff40bf8000100059ca58400f43ae001e01514000ff4"
+  },
+  {
+   "offset": 1394806,
+   "length": 8,
+   "new": "000100b09ce0142d"
+  },
+  {
+   "offset": 1394815,
+   "length": 19,
+   "new": "1010a0000100049c5f142e9c1a1400e0140ff4"
+  },
+  {
+   "offset": 1394870,
+   "length": 1,
+   "new": "00"
+  },
+  {
+   "offset": 1394872,
+   "length": 22,
+   "new": "00bf9c220ff80bf82703130300ba143c00ff00d19cbe"
+  },
+  {
+   "offset": 1394895,
+   "length": 3,
+   "new": "140ff4"
+  },
+  {
+   "offset": 1394934,
+   "length": 1,
+   "new": "84"
+  },
+  {
+   "offset": 1394936,
+   "length": 26,
+   "new": "f4081703004e1020000100049c2014010ff814000ff414000ff4"
+  },
+  {
+   "offset": 1394998,
+   "length": 7,
+   "new": "000200ca9c1384"
+  },
+  {
+   "offset": 1395006,
+   "length": 14,
+   "new": "0034f0e60007152f84000034e0d8"
+  },
+  {
+   "offset": 1421558,
+   "length": 28,
+   "new": "14000ffef009e0010007152e8400f004000100129cfa0ffe14000ffe"
+  },
+  {
+   "offset": 1421622,
+   "length": 14,
+   "new": "14000ffe14000ffe14000ffe1400"
+  },
+  {
+   "offset": 1428222,
+   "length": 3,
+   "new": "140014"
+  },
+  {
+   "offset": 1428226,
+   "length": 16,
+   "new": "0ffd0bf8144a27040006e0170ffd1400"
+  },
+  {
+   "offset": 1431350,
+   "length": 20,
+   "new": "14000ffe000100bc9c3f84000067f4040067e0d7"
+  },
+  {
+   "offset": 1483972,
+   "length": 14,
+   "new": "140014000ff114000ff114000ff1"
+  },
+  {
+   "offset": 1484022,
+   "length": 2,
+   "new": "00ff"
+  },
+  {
+   "offset": 1484025,
+   "length": 1,
+   "new": "4c"
+  },
+  {
+   "offset": 1484027,
+   "length": 2,
+   "new": "8110"
+  },
+  {
+   "offset": 1484030,
+   "length": 20,
+   "new": "007014000002008b9c9a8400f421e01514000ff1"
+  },
+  {
+   "offset": 1484086,
+   "length": 14,
+   "new": "00579c03144a000610dc00569c01"
+  },
+  {
+   "offset": 1484101,
+   "length": 1,
+   "new": "61"
+  },
+  {
+   "offset": 1484103,
+   "length": 11,
+   "new": "ba14000ff814240ff80ff1"
+  },
+  {
+   "offset": 1484150,
+   "length": 14,
+   "new": "0bf8101300ba143c00fe00229c63"
+  },
+  {
+   "offset": 1484165,
+   "length": 13,
+   "new": "569c4400569c020002e0940ff1"
+  },
+  {
+   "offset": 1484854,
+   "length": 6,
+   "new": "14000ff70bfc"
+  },
+  {
+   "offset": 1484862,
+   "length": 1,
+   "new": "84"
+  },
+  {
+   "offset": 1484864,
+   "length": 18,
+   "new": "f405000200a69c9ae0029c1617010ffc0ff7"
+  },
+  {
+   "offset": 1484918,
+   "length": 28,
+   "new": "0bfe0006159e8403f80700ff00e89c6e00ff00e99ca30ffe14000ff7"
+  },
+  {
+   "offset": 1484983,
+   "length": 11,
+   "new": "0100df9cc49cbfe0018400"
+  },
+  {
+   "offset": 1484995,
+   "length": 3,
+   "new": "0ff402"
+  },
+  {
+   "offset": 1484999,
+   "length": 9,
+   "new": "2d00ba143c000fe0da"
+  },
+  {
+   "offset": 1492606,
+   "length": 20,
+   "new": "14000feb00fe00129ce1142d001010a0e0140feb"
+  },
+  {
+   "offset": 1492662,
+   "length": 28,
+   "new": "00459c46142c000210f400459c41e01ce001000200979cdbe0140feb"
+  },
+  {
+   "offset": 1492726,
+   "length": 2,
+   "new": "00ff"
+  },
+  {
+   "offset": 1492729,
+   "length": 25,
+   "new": "3c9cfc0ff80bf8270300459c4584000022f4fee01514000feb"
+  },
+  {
+   "offset": 1492790,
+   "length": 28,
+   "new": "0001000b9c138400f406e00100ba843c0022f0e01403e01514000feb"
+  },
+  {
+   "offset": 1492855,
+   "length": 27,
+   "new": "fe00139cb58400f42300fe00129c4684000022f0bf144ae0150feb"
+  },
+  {
+   "offset": 1492920,
+   "length": 18,
+   "new": "270400449c0084000022f0c4102600ba143c"
+  },
+  {
+   "offset": 1492939,
+   "length": 2,
+   "new": "1614"
+  },
+  {
+   "offset": 1492942,
+   "length": 4,
+   "new": "0feb1400"
+  },
+  {
+   "offset": 1492982,
+   "length": 24,
+   "new": "00fe00119c271426000610dc00459ca0102e00ba143c0021"
+  },
+  {
+   "offset": 1493007,
+   "length": 3,
+   "new": "740feb"
+  },
+  {
+   "offset": 1510090,
+   "length": 8,
+   "new": "140014000ff21400"
+  },
+  {
+   "offset": 1510134,
+   "length": 8,
+   "new": "00fe00f09ca7142e"
+  },
+  {
+   "offset": 1510143,
+   "length": 19,
+   "new": "4e102000239c200ff817038400f4fde0180ff2"
+  },
+  {
+   "offset": 1510202,
+   "length": 24,
+   "new": "14000ff3142c000410e800239cff0ff89c160ff814000ff3"
+  },
+  {
+   "offset": 1510262,
+   "length": 20,
+   "new": "0bf8101300ba143c00fe00ef9c6300249cdc8400"
+  },
+  {
+   "offset": 1510283,
+   "length": 7,
+   "new": "1af478001ae035"
+  },
+  {
+   "offset": 1523702,
+   "length": 22,
+   "new": "14000ffb343f103200099ca200139c5b0ff80ffb1400"
+  },
+  {
+   "offset": 1523830,
+   "length": 19,
+   "new": "140014000ffb00139c1e142000089cdf0ff814"
+  },
+  {
+   "offset": 1523850,
+   "length": 8,
+   "new": "0ffb14000ffb1400"
+  },
+  {
+   "offset": 1524022,
+   "length": 16,
+   "new": "14000ff90bf8140300fe00d69cd18400"
+  },
+  {
+   "offset": 1524039,
+   "length": 7,
+   "new": "12f4e20011e078"
+  },
+  {
+   "offset": 1527736,
+   "length": 19,
+   "new": "1400e20000bc1080001014720bf82703140227"
+  },
+  {
+   "offset": 1527756,
+   "length": 6,
+   "new": "14002701e013"
+  },
+  {
+   "offset": 1527799,
+   "length": 19,
+   "new": "02170300fe00cf9c828400e0031400e200f41c"
+  },
+  {
+   "offset": 1527819,
+   "length": 5,
+   "new": "0c34c0e014"
+  },
+  {
+   "offset": 1527862,
+   "length": 9,
+   "new": "00029c2700029cc014"
+  },
+  {
+   "offset": 1527872,
+   "length": 18,
+   "new": "0ff80bf88430f01a00ea106014309c7b0ff8"
+  },
+  {
+   "offset": 1527926,
+   "length": 28,
+   "new": "14000ff58413f00400019c5b0ff800019c5c8400f417343f1032e017"
+  },
+  {
+   "offset": 1527993,
+   "length": 22,
+   "new": "4a000410e89c430ff80bf8270300478458f01c9c6184"
+  },
+  {
+   "offset": 1528016,
+   "length": 2,
+   "new": "e013"
+  },
+  {
+   "offset": 1528054,
+   "length": 2,
+   "new": "f405"
+  },
+  {
+   "offset": 1528057,
+   "length": 9,
+   "new": "1010a014209c230ff8"
+  },
+  {
+   "offset": 1528068,
+   "length": 10,
+   "new": "00478416f0039c770ff8"
+  },
+  {
+   "offset": 1528079,
+   "length": 3,
+   "new": "03e013"
+  },
+  {
+   "offset": 1528118,
+   "length": 28,
+   "new": "00c034f38402f80300019c5f0ff80bf827042303140027002701e016"
+  },
+  {
+   "offset": 1528184,
+   "length": 10,
+   "new": "14000ff9170327021304"
+  },
+  {
+   "offset": 1528195,
+   "length": 15,
+   "new": "ba143c00fe00cc9c5b0ff80bf8e013"
+  },
+  {
+   "offset": 1528246,
+   "length": 28,
+   "new": "103000ba143c00fe00cc9c448400f40600ea106014309cbc14010ff8"
+  },
+  {
+   "offset": 1528312,
+   "length": 26,
+   "new": "0bf800019ca18400f406003f108014139c9e14010ff80bf8e013"
+  },
+  {
+   "offset": 1528375,
+   "length": 1,
+   "new": "30"
+  },
+  {
+   "offset": 1528377,
+   "length": 13,
+   "new": "ba143c00fe00cc9c048400f403"
+  },
+  {
+   "offset": 1528391,
+   "length": 11,
+   "new": "d90ff800ea10601430e035"
+  },
+  {
+   "offset": 1528502,
+   "length": 21,
+   "new": "14000ffa00ff9c44000200af9c050ff80bfe9c1700"
+  },
+  {
+   "offset": 1528524,
+   "length": 6,
+   "new": "00519c9a0ffe"
+  },
+  {
+   "offset": 1528566,
+   "length": 2,
+   "new": "0bfc"
+  },
+  {
+   "offset": 1528570,
+   "length": 2,
+   "new": "0001"
+  },
+  {
+   "offset": 1528573,
+   "length": 3,
+   "new": "c59c31"
+  },
+  {
+   "offset": 1528577,
+   "length": 7,
+   "new": "ba843cf0051400"
+  },
+  {
+   "offset": 1528585,
+   "length": 5,
+   "new": "0100c59c33"
+  },
+  {
+   "offset": 1528591,
+   "length": 3,
+   "new": "010ffc"
+  },
+  {
+   "offset": 1528630,
+   "length": 11,
+   "new": "0bfe14009cde0ffe0bfc14"
+  },
+  {
+   "offset": 1528642,
+   "length": 12,
+   "new": "27011301304000ba143ce017"
+  },
+  {
+   "offset": 1528694,
+   "length": 11,
+   "new": "1400e20000fe00cb9c6584"
+  },
+  {
+   "offset": 1528706,
+   "length": 16,
+   "new": "f01a170134012701840ffcdc14000ffc"
+  },
+  {
+   "offset": 1528758,
+   "length": 4,
+   "new": "17013401"
+  },
+  {
+   "offset": 1528763,
+   "length": 19,
+   "new": "eb0bfe000100c59ccf8400f01b00ba143ce015"
+  },
+  {
+   "offset": 1528822,
+   "length": 28,
+   "new": "000100c59cbc0ffe0bf8e0031400e20027039c9b8400f43c34ffe013"
+  },
+  {
+   "offset": 1528886,
+   "length": 3,
+   "new": "130380"
+  },
+  {
+   "offset": 1528890,
+   "length": 24,
+   "new": "f008840ef41c3401e01ae0031400e2008400f41534ffe013"
+  },
+  {
+   "offset": 1528950,
+   "length": 1,
+   "new": "27"
+  },
+  {
+   "offset": 1528952,
+   "length": 18,
+   "new": "3440103200fe9c6317029c020ff80bf82703"
+  },
+  {
+   "offset": 1528971,
+   "length": 7,
+   "new": "00f419c403e013"
+  },
+  {
+   "offset": 1529014,
+   "length": 16,
+   "new": "2704a0035704341e2702140027002701"
+  },
+  {
+   "offset": 1529031,
+   "length": 7,
+   "new": "2910f60001e098"
+  },
+  {
+   "offset": 1529336,
+   "length": 4,
+   "new": "14000ffa"
+  },
+  {
+   "offset": 1529341,
+   "length": 13,
+   "new": "7b14b300fe00cb9c7f1703a402"
+  },
+  {
+   "offset": 1529355,
+   "length": 7,
+   "new": "0114002702e013"
+  },
+  {
+   "offset": 1529398,
+   "length": 10,
+   "new": "002a10e6007b14b300fe"
+  },
+  {
+   "offset": 1529409,
+   "length": 5,
+   "new": "cb9c600ff8"
+  },
+  {
+   "offset": 1532982,
+   "length": 7,
+   "new": "140014000ff614"
+  },
+  {
+   "offset": 1532990,
+   "length": 6,
+   "new": "270027012702"
+  },
+  {
+   "offset": 1532997,
+   "length": 5,
+   "new": "2910f6007b"
+  },
+  {
+   "offset": 1533003,
+   "length": 7,
+   "new": "b3e05d0ff61400"
+  },
+  {
+   "offset": 1533048,
+   "length": 2,
+   "new": "1400"
+  },
+  {
+   "offset": 1533184,
+   "length": 18,
+   "new": "140014000ff700fe00c49cfc0ff814000ff7"
+  },
+  {
+   "offset": 1533622,
+   "length": 7,
+   "new": "14000ffb0bfc14"
+  },
+  {
+   "offset": 1533630,
+   "length": 6,
+   "new": "270000701023"
+  },
+  {
+   "offset": 1533637,
+   "length": 13,
+   "new": "07142c000100579c350ffc0ffb"
+  },
+  {
+   "offset": 1548674,
+   "length": 6,
+   "new": "140014000ffb"
+  },
+  {
+   "offset": 1548681,
+   "length": 9,
+   "new": "000ffb14000ffb1400"
+  },
+  {
+   "offset": 1548726,
+   "length": 1,
+   "new": "14"
+  },
+  {
+   "offset": 1548728,
+   "length": 13,
+   "new": "0ffb0bfc270000ff00d39c0417"
+  },
+  {
+   "offset": 1548742,
+   "length": 1,
+   "new": "00"
+  },
+  {
+   "offset": 1548744,
+   "length": 10,
+   "new": "002e9c3d1700001ae093"
+  },
+  {
+   "offset": 1561804,
+   "length": 6,
+   "new": "140014000ff3"
+  },
+  {
+   "offset": 1561846,
+   "length": 20,
+   "new": "00fe00ce9cc00ffc0bfe140500fe008c9cef8400"
+  },
+  {
+   "offset": 1561867,
+   "length": 7,
+   "new": "04f4c0e0560ff3"
+  },
+  {
+   "offset": 1562038,
+   "length": 6,
+   "new": "14000ff700fe"
+  },
+  {
+   "offset": 1562045,
+   "length": 1,
+   "new": "8b"
+  },
+  {
+   "offset": 1562047,
+   "length": 9,
+   "new": "fd00fe008b9c228400"
+  },
+  {
+   "offset": 1562057,
+   "length": 7,
+   "new": "03f0610003e05c"
+  },
+  {
+   "offset": 1563776,
+   "length": 6,
+   "new": "140014000ff8"
+  },
+  {
+   "offset": 1563783,
+   "length": 7,
+   "new": "0100149cf90ffe"
+  },
+  {
+   "offset": 1563792,
+   "length": 2,
+   "new": "0ff8"
+  },
+  {
+   "offset": 1563832,
+   "length": 8,
+   "new": "0ff814000ff81400"
+  },
+  {
+   "offset": 1564482,
+   "length": 16,
+   "new": "140014000ff414000ff414000ff41400"
+  },
+  {
+   "offset": 1565046,
+   "length": 26,
+   "new": "14000ff514000ff514000ff514000ff514000ff514000ff51400"
+  },
+  {
+   "offset": 1599036,
+   "length": 22,
+   "new": "140014000ff70bf8270384000001f4fc14000001e0f6"
+  },
+  {
+   "offset": 1599544,
+   "length": 20,
+   "new": "14000ff700ff00d19c3017030ff80bf827038426"
+  },
+  {
+   "offset": 1599565,
+   "length": 5,
+   "new": "0ee0f61400"
+  },
+  {
+   "offset": 1606710,
+   "length": 28,
+   "new": "14000ff5f005e00100289c650ff8842ef0020ff8842cf019e0140ff5"
+  },
+  {
+   "offset": 1606774,
+   "length": 14,
+   "new": "00ff00219c420ff8842df00500fe"
+  },
+  {
+   "offset": 1606789,
+   "length": 13,
+   "new": "629cdc0ff800808426e0150ff5"
+  },
+  {
+   "offset": 1606840,
+   "length": 11,
+   "new": "f06700ff00679c408400f4"
+  },
+  {
+   "offset": 1606852,
+   "length": 14,
+   "new": "343f100100ff00669c3c0ff81400"
+  },
+  {
+   "offset": 1607040,
+   "length": 18,
+   "new": "140014000ff600808424f01b1b10e0140ff6"
+  },
+  {
+   "offset": 1607094,
+   "length": 28,
+   "new": "160000fe000c9c460ff8008084000025f80217038413e01514000ff6"
+  },
+  {
+   "offset": 1607158,
+   "length": 4,
+   "new": "0025f4e5"
+  },
+  {
+   "offset": 1607163,
+   "length": 11,
+   "new": "0384300025f4e10025e0be"
+  },
+  {
+   "offset": 1625978,
+   "length": 8,
+   "new": "140014000ffc1703"
+  },
+  {
+   "offset": 1625987,
+   "length": 1,
+   "new": "20"
+  },
+  {
+   "offset": 1625989,
+   "length": 13,
+   "new": "03e0010ff817038420e0141400"
+  },
+  {
+   "offset": 1626038,
+   "length": 28,
+   "new": "f00600ff00419ce98400f405170300ff00409c3d0ff80ffc14000ffc"
+  },
+  {
+   "offset": 1627396,
+   "length": 14,
+   "new": "140014000ff90bf8e01514000ff9"
+  },
+  {
+   "offset": 1627446,
+   "length": 2,
+   "new": "00ff"
+  },
+  {
+   "offset": 1627449,
+   "length": 11,
+   "new": "3e9c2a8400f003e0010ff8"
+  },
+  {
+   "offset": 1627461,
+   "length": 7,
+   "new": "ba143c0035e037"
+  },
+  {
+   "offset": 1654662,
+   "length": 12,
+   "new": "140014000ffb14000ffb1400"
+  },
+  {
+   "offset": 1654712,
+   "length": 26,
+   "new": "00fd00d79cad141b2700140100bd107500fd00d79c820028e0f8"
+  },
+  {
+   "offset": 1675194,
+   "length": 3,
+   "new": "140014"
+  },
+  {
+   "offset": 1675198,
+   "length": 20,
+   "new": "0ffc84000008f40100fd00af9c9284000008e0f8"
+  },
+  {
+   "offset": 1679290,
+   "length": 16,
+   "new": "140014000ffaf403e0010ff800ff0083"
+  },
+  {
+   "offset": 1679307,
+   "length": 7,
+   "new": "d6143e0006e0d3"
+  },
+  {
+   "offset": 1682248,
+   "length": 7,
+   "new": "140014000ff714"
+  },
+  {
+   "offset": 1682256,
+   "length": 2,
+   "new": "0ff7"
+  },
+  {
+   "offset": 1682294,
+   "length": 8,
+   "new": "00ff00d49ca60ff8"
+  },
+  {
+   "offset": 1682303,
+   "length": 3,
+   "new": "000ff7"
+  },
+  {
+   "offset": 1686071,
+   "length": 9,
+   "new": "000ffa0bf827031400"
+  },
+  {
+   "offset": 1686081,
+   "length": 17,
+   "new": "0027012702170300fd00999c5b0ff80ffa"
+  },
+  {
+   "offset": 1686134,
+   "length": 24,
+   "new": "0bf800ff00cc9c898400f0020ff8000715d100010080c4ff"
+  },
+  {
+   "offset": 1686159,
+   "length": 3,
+   "new": "05e0d5"
+  },
+  {
+   "offset": 1688630,
+   "length": 1,
+   "new": "14"
+  },
+  {
+   "offset": 1688632,
+   "length": 7,
+   "new": "0ffa000725d114"
+  },
+  {
+   "offset": 1688641,
+   "length": 17,
+   "new": "03270500bc1480270415e434030008e055"
+  },
+  {
+   "offset": 1692918,
+   "length": 28,
+   "new": "14000ff800fe007b9c8b8400f43ae001140f00ff00b59cc1e0140ff8"
+  },
+  {
+   "offset": 1692982,
+   "length": 6,
+   "new": "11e1140000ff"
+  },
+  {
+   "offset": 1692989,
+   "length": 1,
+   "new": "80"
+  },
+  {
+   "offset": 1692991,
+   "length": 19,
+   "new": "de00fe00fb9ce08400f0020ff8143ce0150ff8"
+  },
+  {
+   "offset": 1693046,
+   "length": 8,
+   "new": "143d27050002e083"
+  },
+  {
+   "offset": 1693820,
+   "length": 16,
+   "new": "140014000ffc00fe00669c781705000e"
+  },
+  {
+   "offset": 1693837,
+   "length": 2,
+   "new": "b714"
+  },
+  {
+   "offset": 1693840,
+   "length": 2,
+   "new": "0ffc"
+  },
+  {
+   "offset": 1700727,
+   "length": 5,
+   "new": "000ff90bfe"
+  },
+  {
+   "offset": 1700733,
+   "length": 11,
+   "new": "fd000c9c558400f4191401"
+  },
+  {
+   "offset": 1700745,
+   "length": 9,
+   "new": "fd000f9c3de0140ff9"
+  },
+  {
+   "offset": 1700790,
+   "length": 28,
+   "new": "00051564000cc4008400f40700fd00439ce900fd00439c450ffe0ff9"
+  },
+  {
+   "offset": 1700859,
+   "length": 1,
+   "new": "ff"
+  },
+  {
+   "offset": 1700861,
+   "length": 1,
+   "new": "af"
+  },
+  {
+   "offset": 1700863,
+   "length": 19,
+   "new": "640ff80bfe8410f41d8421f41b8425e0150ff9"
+  },
+  {
+   "offset": 1700920,
+   "length": 26,
+   "new": "f404843bf01fe001142c000610dc00ff00ae9c7d0ffe0ff91400"
+  },
+  {
+   "offset": 1700987,
+   "length": 23,
+   "new": "fd005a9cfe0ffe0bf814202704130400ba143ce0140ff9"
+  },
+  {
+   "offset": 1701046,
+   "length": 16,
+   "new": "00109c49170434012704842ffce3e001"
+  },
+  {
+   "offset": 1701063,
+   "length": 1,
+   "new": "ff"
+  },
+  {
+   "offset": 1701065,
+   "length": 1,
+   "new": "af"
+  },
+  {
+   "offset": 1701067,
+   "length": 2,
+   "new": "3a00"
+  },
+  {
+   "offset": 1701070,
+   "length": 2,
+   "new": "e07e"
+  },
+  {
+   "offset": 1703366,
+   "length": 12,
+   "new": "14000ff78400e01514000ff7"
+  },
+  {
+   "offset": 1703414,
+   "length": 12,
+   "new": "00fbf067101300ba143c00fc"
+  },
+  {
+   "offset": 1703427,
+   "length": 5,
+   "new": "769c221413"
+  },
+  {
+   "offset": 1703433,
+   "length": 5,
+   "new": "3f1080e015"
+  },
+  {
+   "offset": 1703439,
+   "length": 3,
+   "new": "000ff7"
+  },
+  {
+   "offset": 1703478,
+   "length": 16,
+   "new": "00ff00aa9c8500ff00a19c7d0ff80bfe"
+  },
+  {
+   "offset": 1703495,
+   "length": 11,
+   "new": "478458f021e01514000ff7"
+  },
+  {
+   "offset": 1703542,
+   "length": 28,
+   "new": "00ff00aa9c8a8400f4070007152f8400f00300039cf90ffe14000ff7"
+  },
+  {
+   "offset": 1705080,
+   "length": 1,
+   "new": "14"
+  },
+  {
+   "offset": 1705082,
+   "length": 10,
+   "new": "0ffa0bfe000715d10001"
+  },
+  {
+   "offset": 1705093,
+   "length": 1,
+   "new": "80"
+  },
+  {
+   "offset": 1705096,
+   "length": 10,
+   "new": "000725d10ffe0ffa1400"
+  },
+  {
+   "offset": 1705220,
+   "length": 14,
+   "new": "140014000ffb14000ffb14000ffb"
+  },
+  {
+   "offset": 1705272,
+   "length": 9,
+   "new": "14000ffb14000ffb14"
+  },
+  {
+   "offset": 1705282,
+   "length": 14,
+   "new": "0ffb14000ffb14000ffb14000ffb"
+  },
+  {
+   "offset": 1705297,
+   "length": 1,
+   "new": "00"
+  },
+  {
+   "offset": 1705594,
+   "length": 7,
+   "new": "140014000ffe14"
+  },
+  {
+   "offset": 1705602,
+   "length": 8,
+   "new": "0ffe14000ffe1400"
+  },
+  {
+   "offset": 1705846,
+   "length": 5,
+   "new": "14000ffd14"
+  },
+  {
+   "offset": 1705852,
+   "length": 2,
+   "new": "0ffd"
+  },
+  {
+   "offset": 1705855,
+   "length": 9,
+   "new": "000ffd14000ffd1400"
+  },
+  {
+   "offset": 1740804,
+   "length": 1,
+   "new": "02"
+  },
+  {
+   "offset": 1740806,
+   "length": 1,
+   "new": "04"
+  },
+  {
+   "offset": 1740810,
+   "length": 1,
+   "new": "04"
+  },
+  {
+   "offset": 1740812,
+   "length": 2,
+   "new": "0200"
+  },
+  {
+   "offset": 1748406,
+   "length": 3,
+   "new": "e00303"
+  },
+  {
+   "offset": 1748410,
+   "length": 5,
+   "new": "7de20bf827"
+  },
+  {
+   "offset": 1748417,
+   "length": 7,
+   "new": "408404f023e018"
+  },
+  {
+   "offset": 1748470,
+   "length": 1,
+   "new": "14"
+  },
+  {
+   "offset": 1748472,
+   "length": 4,
+   "new": "27151716"
+  },
+  {
+   "offset": 1748477,
+   "length": 2,
+   "new": "80b4"
+  },
+  {
+   "offset": 1748480,
+   "length": 2,
+   "new": "2716"
+  },
+  {
+   "offset": 1748483,
+   "length": 1,
+   "new": "fe"
+  },
+  {
+   "offset": 1748485,
+   "length": 5,
+   "new": "fc9cb80ff8"
+  },
+  {
+   "offset": 1748491,
+   "length": 1,
+   "new": "fe"
+  },
+  {
+   "offset": 1748493,
+   "length": 5,
+   "new": "7a9cd6e013"
+  },
+  {
+   "offset": 1748534,
+   "length": 1,
+   "new": "17"
+  },
+  {
+   "offset": 1748537,
+   "length": 1,
+   "new": "fe"
+  },
+  {
+   "offset": 1748539,
+   "length": 7,
+   "new": "a89c9b0ff80bfd"
+  },
+  {
+   "offset": 1748547,
+   "length": 4,
+   "new": "0118d32b"
+  },
+  {
+   "offset": 1748552,
+   "length": 10,
+   "new": "19fc2bff0effe1fde013"
+  },
+  {
+   "offset": 1748598,
+   "length": 14,
+   "new": "0bf82304170434c0840ffc061704"
+  },
+  {
+   "offset": 1748613,
+   "length": 1,
+   "new": "ff"
+  },
+  {
+   "offset": 1748615,
+   "length": 11,
+   "new": "dd9cdf0ff827051403e013"
+  },
+  {
+   "offset": 1748662,
+   "length": 2,
+   "new": "e020"
+  },
+  {
+   "offset": 1748727,
+   "length": 1,
+   "new": "fc"
+  },
+  {
+   "offset": 1748729,
+   "length": 6,
+   "new": "1f9cf5270284"
+  },
+  {
+   "offset": 1748737,
+   "length": 3,
+   "new": "01f406"
+  },
+  {
+   "offset": 1748741,
+   "length": 1,
+   "new": "fc"
+  },
+  {
+   "offset": 1748743,
+   "length": 4,
+   "new": "1f9c8484"
+  },
+  {
+   "offset": 1748748,
+   "length": 6,
+   "new": "f4191705e013"
+  },
+  {
+   "offset": 1748790,
+   "length": 4,
+   "new": "14092703"
+  },
+  {
+   "offset": 1748795,
+   "length": 3,
+   "new": "01e0c2"
+  },
+  {
+   "offset": 1748799,
+   "length": 1,
+   "new": "ff"
+  },
+  {
+   "offset": 1748801,
+   "length": 4,
+   "new": "179c0f84"
+  },
+  {
+   "offset": 1748806,
+   "length": 4,
+   "new": "f4181705"
+  },
+  {
+   "offset": 1748811,
+   "length": 1,
+   "new": "fe"
+  },
+  {
+   "offset": 1748813,
+   "length": 5,
+   "new": "539c9ce016"
+  },
+  {
+   "offset": 1748855,
+   "length": 1,
+   "new": "fe"
+  },
+  {
+   "offset": 1748857,
+   "length": 4,
+   "new": "509c2184"
+  },
+  {
+   "offset": 1748863,
+   "length": 3,
+   "new": "01f4c7"
+  },
+  {
+   "offset": 1748867,
+   "length": 1,
+   "new": "fd"
+  },
+  {
+   "offset": 1748869,
+   "length": 3,
+   "new": "449c2e"
+  },
+  {
+   "offset": 1748873,
+   "length": 1,
+   "new": "fd"
+  },
+  {
+   "offset": 1748875,
+   "length": 7,
+   "new": "449c061002e013"
+  },
+  {
+   "offset": 1748918,
+   "length": 2,
+   "new": "1401"
+  },
+  {
+   "offset": 1748921,
+   "length": 4,
+   "new": "ff9c4384"
+  },
+  {
+   "offset": 1748927,
+   "length": 7,
+   "new": "01f4a727051705"
+  },
+  {
+   "offset": 1748935,
+   "length": 1,
+   "new": "fc"
+  },
+  {
+   "offset": 1748937,
+   "length": 4,
+   "new": "1e9ccb84"
+  },
+  {
+   "offset": 1748942,
+   "length": 2,
+   "new": "e014"
+  },
+  {
+   "offset": 1748983,
+   "length": 8,
+   "new": "01f48527011b0116"
+  },
+  {
+   "offset": 1748993,
+   "length": 7,
+   "new": "0184f7f07f1601"
+  },
+  {
+   "offset": 1749001,
+   "length": 9,
+   "new": "0184fff07b1602e018"
+  },
+  {
+   "offset": 1749056,
+   "length": 10,
+   "new": "8472f0601603846bf05d"
+  },
+  {
+   "offset": 1749067,
+   "length": 7,
+   "new": "ba103c1702e013"
+  },
+  {
+   "offset": 1749111,
+   "length": 1,
+   "new": "fc"
+  },
+  {
+   "offset": 1749113,
+   "length": 7,
+   "new": "1d9c5317051302"
+  },
+  {
+   "offset": 1749121,
+   "length": 1,
+   "new": "fc"
+  },
+  {
+   "offset": 1749123,
+   "length": 4,
+   "new": "1e9cd284"
+  },
+  {
+   "offset": 1749128,
+   "length": 2,
+   "new": "f443"
+  },
+  {
+   "offset": 1749131,
+   "length": 1,
+   "new": "fc"
+  },
+  {
+   "offset": 1749133,
+   "length": 5,
+   "new": "1e9cade013"
+  },
+  {
+   "offset": 1749174,
+   "length": 1,
+   "new": "84"
+  },
+  {
+   "offset": 1749176,
+   "length": 2,
+   "new": "f42b"
+  },
+  {
+   "offset": 1749179,
+   "length": 9,
+   "new": "141488270317041303"
+  },
+  {
+   "offset": 1749189,
+   "length": 1,
+   "new": "fe"
+  },
+  {
+   "offset": 1749191,
+   "length": 9,
+   "new": "509c3e0ff80bf8e014"
+  },
+  {
+   "offset": 1749239,
+   "length": 13,
+   "new": "0414e82703144a2704e0e01705"
+  },
+  {
+   "offset": 1749253,
+   "length": 1,
+   "new": "fc"
+  },
+  {
+   "offset": 1749255,
+   "length": 11,
+   "new": "1d9c60143be0151425e013"
+  },
+  {
+   "offset": 1749303,
+   "length": 1,
+   "new": "fe"
+  },
+  {
+   "offset": 1749305,
+   "length": 5,
+   "new": "519cc60ff8"
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+// Boot pin state for the SoundLink Micro, copied verbatim from Bose's
+// signed stack PS keys in Minnow_3.0.3_stack_plus_app.dfu
+// (../../firmware/bose/pskeys_named.txt). Words: mask, direction, level,
+// bias, buskeep_en, disable_pull.
+//
+// Outputs high: PIO5 (Bose board function, role unknown), PIO17.
+// Outputs low:  PIO1, 3, 12, 16, 18, 19, 20, 22.
+//
+// merge.xpv carries no PS keys. Apply this after restoring the speaker's
+// own PS keys from a dump, never instead of them (README.md).
+
+// PSKEY_INITIAL_PIO_STATE
+&03b5 = f43f 102a 6034 e415 0000 0000
+// PSKEY_INITIAL_PIO_STATE2
+&2591 = 015f 005f 0102 0100 0000 0000

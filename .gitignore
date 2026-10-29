@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+build/**/*.dfu
+build/**/*.bin
+build/**/*.xuv
+build/**/*.fs
+# flash transcripts capture the device's own HW serial (bose-dfu info -f output); never commit your own
+build/hook/*_flash.log
+build/hook/*_readback.dfu
+# the docs tell you to place Bose's own firmware, its extraction, and the vendor ADK at these
+# paths to rebuild anything here -- none of it may be redistributed (see NOTICE); never commit it
+firmware/
+adk/
+build/dsp/gen.link
+# never present in this export, but if you ever create one locally, never commit it either
+private/

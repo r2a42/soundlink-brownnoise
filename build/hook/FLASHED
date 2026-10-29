@@ -1,0 +1,2 @@
+status=none
+note=fresh checkout; no probe has been flashed yet on this install. Flash the official stock firmware first if you have not already (docs/FLASH-PROTOCOL.md), then follow tools/install_from_stock.py.
