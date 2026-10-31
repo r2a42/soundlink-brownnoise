@@ -43,7 +43,7 @@ def arg(name, default):
 
 
 writer = arg('--writer', 'probe393')
-product = arg('--product', 'probe387')
+product = arg('--product', 'probe428')
 dry = '--dry-run' in sys.argv
 yes = '--yes' in sys.argv
 two_image = '--two-image' in sys.argv
