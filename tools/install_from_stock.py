@@ -2,7 +2,7 @@
 """install_from_stock: install the brown-noise product on a speaker in stock state.
 
 **The default (and recommended) route is ONE flash**: the DSP-generator product
-(default probe380, see docs/dsp-generator-route.md). It needs no payload and no
+(default probe427, see docs/dsp-generator-route.md). It needs no payload and no
 writer image, because the noise is generated inside the speaker's own DSP rather
 than played back from a stored file.
 
@@ -20,7 +20,7 @@ yourself).
 Every flash goes through tools/flash_probe.py, i.e. docs/FLASH-PROTOCOL.md steps 2-4 unchanged (foreground, polling, FLASHED updated, readback 0 differ). This
 script only chains them and stops at the first problem.
 
-Usage:  python tools/install_from_stock.py [probeNNN] [--dry-run]           # single flash, default probe380
+Usage:  python tools/install_from_stock.py [probeNNN] [--dry-run]           # single flash, default probe427
         python tools/install_from_stock.py --two-image [--writer probeNNN] [--product probeNNN] [--dry-run] [--yes]
   --dry-run   print the plan and check the images exist; touch nothing
   --yes       (--two-image only) do not ask for the confirmation on the keyboard (the product image refuses to
@@ -42,8 +42,8 @@ def arg(name, default):
     return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
 
 
-writer = arg('--writer', 'probe346')
-product = arg('--product', 'probe367')
+writer = arg('--writer', 'probe393')
+product = arg('--product', 'probe387')
 dry = '--dry-run' in sys.argv
 yes = '--yes' in sys.argv
 two_image = '--two-image' in sys.argv
@@ -90,7 +90,7 @@ if two_image:
     sys.exit(0)
 
 # Default: single flash, the DSP-generator product (docs/dsp-generator-route.md). Needs no payload and no writer.
-single = next((a for a in sys.argv[1:] if not a.startswith('--')), 'probe380')
+single = next((a for a in sys.argv[1:] if not a.startswith('--')), 'probe427')
 need(single)
 print('plan (single flash, recommended): %s only; no writer, no payload partition write' % single)
 if dry:

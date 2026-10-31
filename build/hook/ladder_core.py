@@ -211,8 +211,21 @@ _BANDS += _REGION_BANDS
 # as data at CONST_BASE + (code - 236514)); the bands are removed from the layout's pool here and the words are written into `out` after the layout. Slots are 0x20 words apart: 0x3E23D + 0x20 * j, j = 0, 1, 2, 4..7
 # (j = 3 is the 3-word band at 0x3E29D, left to the core).
 GEN_TABLE_AT = ()
+NOISEGEN2 = bool(globals().get('NOISEGEN2'))        # probe395: the retuned generator build/dsp/noisegen2.bin (83 PM words): the first 49 ride in the table, the rest are loaded from cave immediates
+NOISEGEN3 = bool(globals().get('NOISEGEN3'))        # probe396: the single-stage replacement build/dsp/noisegen3.bin (55 PM words), same table + extra-chunk path as NOISEGEN2
+NOISEGEN4 = bool(globals().get('NOISEGEN4'))        # probe398 (night design 2026-10-30): build/dsp/noisegen4.bin (two cascaded SVF low-pass sections + small mid/white terms, 56 PM words), same table + extra-chunk path
+_NGBIN = globals().get('NOISEGEN_BIN') or ('build/dsp/noisegen4.bin' if NOISEGEN4 else ('build/dsp/noisegen3.bin' if NOISEGEN3 else ('build/dsp/noisegen2.bin' if NOISEGEN2 else 'build/dsp/noisegen.bin')))
+NOISEGEN2 = NOISEGEN2 or NOISEGEN3 or NOISEGEN4 or bool(globals().get('NOISEGEN_BIN'))
+GEN_EXTRA = ()
 if GEN:
-    GEN_TABLE_AT = tuple(0x3E23D + 0x20 * j for j in (0, 1, 2, 4, 5, 6, 7))
+    # TABLEX (probe405, default off): four more whole window bands (j = 8, 10, 11, 12) = 11 slots = 77 PM words of table capacity; the handler complex then runs from the EXT pool (see below)
+    GEN_TABLE_AT = tuple(0x3E23D + 0x20 * j for j in ((0, 1, 2, 4, 5, 6, 7) + (8, 10, 11, 12)[:globals().get('TABLEX_NB', 3)] if globals().get('TABLEX') else (0, 1, 2, 4, 5, 6, 7)))
+    if NOISEGEN2:
+        _gb2 = open(_NGBIN, 'rb').read()
+        assert len(_gb2) % 4 == 0
+        _w2 = [((_gb2[_q] << 8) | _gb2[_q + 1], (_gb2[_q + 2] << 8) | _gb2[_q + 3]) for _q in range(0, len(_gb2), 4)]
+        GEN_EXTRA = tuple(_w2[7 * len(GEN_TABLE_AT):])
+        assert len(GEN_EXTRA) <= 35, len(GEN_EXTRA)
     for _a in GEN_TABLE_AT: assert (_a, _a + 14) in _BANDS, hex(_a)
     _BANDS = [b_ for b_ in _BANDS if b_[0] not in GEN_TABLE_AT]
 _BEND = {b: k for k, (a, b) in enumerate(_BANDS)}
@@ -278,6 +291,14 @@ if not GEN:
     LBL("STUB_D3")
     W(*ca.synth_stub_words(0xD3))
 
+_TABLEX = bool(globals().get('TABLEX'))
+XPROG = []
+if _TABLEX:
+    # probe405 TABLEX: the window keeps ONLY a trampoline for the handler (enterl -2 ; bsr3 HX ; leavel -2); the whole handler complex (HANDLER .. SAY, REARM, ARM) is emitted into XPROG and placed by ladder_ext as the EXT blocks HX / ARMX.
+    # The placeholder target GATE is far from the window (a 3-word bsr); apply() retargets the operand to HX.
+    assert GEN and NOPURGE
+    LBL("HANDLER"); W(0xFE0B); BSR("GATE"); W(0xFE0F)
+    _MAINPROG = prog; prog = XPROG
 # --------------------------------------------------------------- the HANDLER
 # probe179: dispatched through the TaskData at CAVE+1/CAVE+2 by the 1 s poll the press (and
 # every rebuild) arms. AL = task, AH = the MessageId = the chain counter (3, 2, 1). Every
@@ -426,6 +447,9 @@ W(0xF80F)                       # leavel -8
 
 # ---- probe193: the COLD part goes into the dead-code region (owner approved 2026-10-13). The window
 # above ends with SAY's leavel (a terminator), as the region entry requires.
+if _TABLEX:
+    prog = _MAINPROG
+    XPROG[:] = [(("label", {"HANDLER": "HX", "ARM": "ARMX"}.get(_it[1], _it[1])) if _it[0] == "label" else _it) for _it in XPROG]
 REGION()
 TONE_B = 2
 POKE_SHIFT = 5       # probe193: cbops.shift for the mono tone copy (4 = quiet, 7 = loud; 6 dB per step)
@@ -552,7 +576,7 @@ W(0xF80F)                       # leavel -8
 LBL("MT_ON")
 W(*ca.imm_words(MODE_MS, 0x10)); W(*ca.imm_words(MODE_ID, 0x14))
 BSR("RSEND")                    # the flag
-BSR("ARM")                      # start the noise (the old long-press path, unchanged)
+BSR("TRIG" if _TABLEX else "ARM")   # start the noise (the old long-press path, unchanged)
 W(0xF80F)                       # leavel -8
 
 # SPEAKR: AL = a spoken id. Release OUR hold (AL preserved), then SPEAK it.
@@ -945,13 +969,17 @@ print("hook: 0x%05x bsr -> CAVE 0x%05x, operand bytes %02x %02x %02x at %s"
 entry_v = CODE_AT - CAVE
 assert -128 <= entry_v <= 127
 if GEN:
-    _gbin = open('build/dsp/noisegen.bin', 'rb').read()
+    _gbin = open(_NGBIN, 'rb').read()
     assert len(_gbin) % 4 == 0
     _gpairs = []
     for _q in range(0, len(_gbin), 4): _gpairs += [(_gbin[_q] << 8) | _gbin[_q + 1], (_gbin[_q + 2] << 8) | _gbin[_q + 3]]      # hi16, lo16 of each PM word, in order
     GEN_NW = len(_gpairs) // 2
-    assert GEN_NW <= 49, GEN_NW
-    _gpairs += [0] * (7 * 14 - len(_gpairs))
+    assert GEN_NW <= (84 if NOISEGEN2 else 49), GEN_NW
+    _tcap = 7 * len(GEN_TABLE_AT)                 # the table capacity in PM words (49; 77 with TABLEX)
+    if GEN_NW > _tcap:
+        assert tuple((_gpairs[2 * _i], _gpairs[2 * _i + 1]) for _i in range(_tcap, GEN_NW)) == GEN_EXTRA
+        _gpairs = _gpairs[:2 * _tcap]             # the table holds the first words; the rest are loaded from cave immediates (ladder_ext GLX blocks)
+    _gpairs += [0] * (2 * _tcap - len(_gpairs))
     for _r, _a in enumerate(GEN_TABLE_AT):
         for _k in range(14):
             assert _a + _k not in out, hex(_a + _k)

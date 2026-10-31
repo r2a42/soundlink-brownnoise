@@ -678,3 +678,11 @@ Flash numbers after about #217 in the field log are approximate (some entries re
 | 368-379 | 10-28 | PM_WIN_ENABLE, PM window read/write proven, address forms, DM2 timer struct | the DSP's program memory is writable |
 | 380 | 10-28 | the lean generator product (GEN), one flash from stock | measured within 2.4 dB of the recorded noise |
 | 381 | 10-28 | inert stubs of AY batches C and D | hands-free check passed |
+| 382-383 | 10-29 | read-only spoken-readout diagnostics (events 0x4070-0x4077) | not products |
+| 384-388 | 10-29 | the connected-device start fix: STARTWAIT, CANCEL670B, SILENTDROP (387 loop, 388 generator), NOREWR | product matrix passed |
+| 389-394 | 10-29 | payload writer revisions; 393 final (guard first, fixed 45 s tick, DROPBT, MUTEBOOT) | shipped as the writer in v0.2.0 |
+| 395-420 | 10-29 to 10-30 | generator EQ experiments (stacked state-variable sections, wider loader table, recording-fit tuning) | tuning against a through-speaker recording abandoned, see `docs/ear-tuned-eq.md` |
+| 421-422 | 10-30 | +3 dB / +5 dB tilt probes from 630 Hz | 421 "pretty good" |
+| 423-425 | 10-30 | generator fitted to the source recording, then to the hybrid curve (v1-v3) | 425 "perfect" |
+| 426 | 10-30 | probe425 + volume ladder capped at 12 levels | not flashed alone |
+| 427 | 10-30 | probe426 + PWRREL (power-off releases the audio-busy hold at once) | shipped as the product in v0.2.0 |

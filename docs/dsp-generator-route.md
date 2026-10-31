@@ -47,3 +47,7 @@ A read-only census speaks one DSP word per console event as seven battery-percen
 ## 8. Reuse for other projects
 
 The same two messages give a read/write window into the stock DSP of any speaker that ships the `sbc_decoder` application; the PM window plus the tone-copy timer hook is a general way to run custom DSP code (a tone, a filter, a noise source) without touching the signed filesystem.
+
+## 9. Update 2026-10-31: the v0.2.0 generator
+
+The 45-word generator of section 3 was replaced by a 67-word state-variable-filter chain (`build/dsp/noisegen425.asm`) tuned by ear to a direct recording of the source; the delivery method (PM window write plus the tone-copy timer hook) is unchanged. How it was tuned, the volume cap and the power-off fix: `docs/ear-tuned-eq.md`.

@@ -1,55 +1,63 @@
-# Current state (2026-10-28): the lean DSP-generator product is on the speaker
+# Current state (2026-10-31): the ear-tuned DSP-generator product, probe427
 
-Purpose: the one page to read first to know where the project stands today, what is installed, what was measured, what is still open and which older statements this page supersedes.
-Status / last verified: 2026-10-28 (evening). Evidence for every line was originally in `docs/field-log.md`, the project's append-only lab notebook, which is not included in this public export (it is a dense internal log, not written for an outside reader); `build/hook/FLASHED` is the authority for what is on the speaker.
-Read next: `docs/dsp-generator-route.md` (how the generator works), `docs/FLASH-PROTOCOL.md` (before any flash).
-Marks: **proven** = a command output or recording quoted in the project's lab notebook; **well-supported**; **hypothesis**.
+Purpose: the one page to read first to know where the project stands, what the three shipped images are, what was tested and by what means, what is still open and which older statements this page supersedes.
+Status / last verified: 2026-10-31. Evidence was originally in the project's append-only lab notebook, which is not part of this export; `build/hook/FLASHED` is the authority for what is on a speaker.
+Read next: `docs/dsp-generator-route.md` (how the generator works), `docs/ear-tuned-eq.md` (how the sound and the volume cap were chosen), `docs/FLASH-PROTOCOL.md` (before any flash), `docs/RELEASE-NOTES.md` (what changed since the first export).
+Marks: **proven** = a command output, readback or recording from the lab notebook; **well-supported**; **hypothesis**.
 
-## 1. What is on the speaker (proven)
+## 1. The three images (v0.2.0)
 
-Unit 2 (the only speaker) runs **probe380** (`build/hook/probe380_brown.dfu`, built by `python build/hook/assemble_probe380.py --build`): the LEAN GENERATOR product. It was installed by ONE flash from official stock firmware 3.0.3.6546 (the stock image was flashed first and read back: 0 of 975,168 filesystem bytes differ; then probe380: 0 differ, all 2,116 cave words correct).
+| image | patch file (`build/patches/`) | what it does | risk |
+|---|---|---|---|
+| **probe427** | `probe427_product_from_stock_3.0.3.6546.patch.json` | the product: brown noise generated inside the speaker's DSP, one flash from stock; ear-tuned EQ, volume ladder capped, power-off fix, connected-device fix | normal flash risk (`docs/FLASH-PROTOCOL.md`) |
+| probe393 | `probe393_writer_from_stock_3.0.3.6546.patch.json` | the payload WRITER of the older recorded-noise route: stages the 48 kHz payload and writes it to partition 2 | **the highest-risk image here** (`docs/partition-route.md`); only needed for the loop |
+| probe428 | `probe428_loop_from_stock_3.0.3.6546.patch.json` (only if listed in `docs/RELEASE-NOTES.md`) | the older loop product: plays the payload from partition 2 | needs the writer first |
 
-The brown noise is **generated inside the speaker's DSP**. A 45-word routine (`build/dsp/noisegen.asm`, assembled with the ADK tools, post-processed by `build/dsp/compact.py`) is written into the DSP's program memory through its PM window every time the noise starts, and hooked into the DSP's tone-copy timer. There is no recorded noise, no payload partition, no writer image and no loop seam. Details: `docs/dsp-generator-route.md`.
+Superseded patches (the first export: probe380, probe346, probe367) are kept in `build/patches/superseded/`.
 
-Behaviour (hands-free tests with the laptop microphone and the virtual long press `tools/csr/virtual_press.py press`):
+## 2. What is on the speaker (proven)
 
-| item | result |
-|---|---|
-| start | noise within about 1-2 s of the centre long press; no auto-start at boot |
-| spectrum vs the approved 48 kHz recorded noise (probe367's own self-generated payload, `tools/brownnoise.py`, not a third-party recording; same mic, relative to 1 kHz) | within +-2.4 dB in every band 30 Hz - 8 kHz; level +1.1 dB |
-| stability | 9 minutes: rms sd 0.0013; 0 glitch blocks (the recorded loop showed about 2,000 seam bursts) |
-| OFF/ON | three cycles, cold and warm path, noise back within about 2 s |
-| volume | 15 fine levels (1.5 dB steps, level 0 silent); four steps down = -7.8 dB, four up = back |
-| resets | none in any session (USB LastArrivalDate unchanged) |
-| install | stock -> probe380 in one flash; the stock prompts (voice data) are intact |
+probe427 is flashed on two units (readback after each flash: 0 of 975,168 filesystem bytes differ, all 2,108 cave words correct). Details of what a probe427 unit does:
 
-Also kept from the earlier product (probe367/358): lights dark at noise start until the next stock power-on (LEDDARK), stock idle power-off restored after OFF (TMREARM), stock link-lost/idle timers cancelled while the noise plays (TIMERS), Bluetooth off while the noise plays (SCAN/BTDROP), noise survives Bluetooth disconnects (ENSURE), 48 kHz DAC.
+- Pressing the centre button long starts brown noise generated by a small state-variable-filter chain in the DSP (67 words of DSP program memory, `build/dsp/noisegen425.asm`, written into the DSP's program memory through its PM window at every start). No recorded audio, no payload partition, no loop seam.
+- The sound was set **by ear against the author's own direct recording of the brown-noise source** (`docs/ear-tuned-eq.md`); the reported verdict was "The noise is perfect".
+- The volume ladder has 12 levels (0-11) instead of 15. The top is about 4.6 dB lower than the old top, because the old top was judged about 4.5 dB too loud and starting to distort. The default level is 6.
+- Power-off while the noise plays: the speaker powers off, and a power-on within a few seconds behaves like stock (before this release it needed two more presses with a gap, see section 4).
+- Kept from earlier: lights dark while the noise plays, stock idle power-off restored after OFF, stock timers cancelled while playing, Bluetooth off while playing, 48 kHz DAC, the connected-device start fix (STARTWAIT, SILENTDROP, NOREWR; `docs/deep/` notes on probes 384-388).
 
-## 2. Rollback and other images
+## 3. What was tested, and how (read this before trusting a line)
 
-- probe367: the previous product (48 kHz recorded noise, tone ring enlarged to 512 samples by three DSP pokes). Needs the payload in partition 2 (this unit still holds it) or the writer probe346.
-- probe358: the 32 kHz native recorded product (needs the writer probe354's payload).
-- probe381: probe367 plus inert stubs in 17 more dead functions (batches C and D of the approved dead-function pool, added 2026-10-28). It only proves those functions are unused; probe380 uses them for code.
-- Stock: `firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu`, flashed by the manual sequence of `docs/FLASH-PROTOCOL.md` (it does not touch partition 2).
-- `python tools/install_from_stock.py probe380` (or with no argument at all, since `probe380` is the default) is the one-flash install (a real run from a factory-state unit has not been done on a second unit).
+| test | method | result |
+|---|---|---|
+| install | `tools/flash_probe.py`, foreground, full readback | pass on two units |
+| sound | the author's ear against the source recording, several rounds (probes 421-425) | accepted ("perfect") |
+| top volume | the author's ear, then a measured ladder (`docs/ear-tuned-eq.md`) | capped by 4.6 dB, accepted |
+| physical button, power-off while playing, power-on after power-off (the press plan in the docstring of `build/hook/assemble_probe427.py`; run on the first unit) | the author pressing the real buttons | all passed |
+| 5-minute run, and an overnight run | the author | went well |
 
-## 3. Open items (not yet tested)
+Microphone recordings made through the speaker with a laptop microphone array are **not** used as an acceptance measure any more: that array applies noise suppression that changes the low bass by 5-7 dB between sessions (`docs/ear-tuned-eq.md`).
 
-A physical long press by hand (only the virtual/scripted long press has been tested); a phone connecting (as opposed to disconnecting) while the noise plays; stock prompts and a physical power-off while the noise plays (the USB-console "power off" key does not stop the noise, as on probe367); idle power-off specifically after the connect-while-playing case; the lights specifically after that case; an ear check of the 17 newly used dead functions (only an automated hands-free test was done); the first run on a second, factory-state unit.
+## 4. Open items (not yet tested)
 
-## 4. Statements this page supersedes
+A phone **connecting** (as opposed to disconnecting) while the noise already plays; idle power-off and the lights after that case; a long soak (hours) with recording; the loop image probe428 and the writer probe393 on a second unit (both were only proven on one unit, and the writer rewrites partition 2: do not run it on a unit that holds factory language packs in partition 2 without reading `docs/partition-route.md`); the first flash on a factory-fresh unit through `tools/install_from_stock.py` (flashes were done with `tools/flash_probe.py` on units already running earlier probes).
 
-- "Delivery of DSP code cannot come through the signed filesystem, the only route is a partition write" (`docs/dsp-noise-route.md`): the filesystem route is still closed, but the DSP's own program memory is writable at run time through its PM window (proven 2026-10-28), which needs no partition write.
-- "PM cannot be written through POKE": refuted on hardware (probes 375-377).
-- "The cave is full": still true for the recorded-noise product; the lean product frees about 300 words, and 17 more dead functions (batches C, D of the approved dead-function pool) were approved.
+Known tooling limits: `tools/flash_probe.py` tracks one unit in `build/hook/FLASHED` and overwrites `<probe>_readback.dfu` on each flash, so a second unit's readback replaces the first's; copy the file away between units. `tools/framecheck.py` reports two findings on probe427 (at 0x2fe81 and 0x2fe84) that a flow-aware walk of all 50 `enterl` heads shows to be a false attribution; they are recorded, not suppressed.
 
-## 5. New rules learned
+## 5. Rollback
 
-- Never send console events 0x4021 (BootSetMode 7: the speaker drops to USB 4005; only a USB replug cures it) or 0x4022 (loader mode). Safe test ids are the stock event switch's default arm (0x4015, 0x402C-0x402E, 0x4033, 0x4070-0x4077).
-- After every console event read the 40fe node's `DEVPKEY_Device_LastArrivalDate`: a reset moves it; "still lists 40fe" proves nothing.
-- Spoken data readouts carry a check digit (7th digit = sum of the six octal digits mod 8) and the decoder refuses silent slots.
-- Keep offline gates short: one reduced world run (ON at 0 s, OFF at 12 s, horizon 20 s), not a full product-gate run.
+- Previous product: probe380 from `build/patches/superseded/` (flash by the same protocol), or the stock firmware `firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu`, which does not touch partition 2.
+- One step back inside the ear-tuning series: probe425 (same sound, full volume ladder, no power-off fix), then probe424.
 
-## 6. Timeline of the eras leading here
+## 6. Statements this page supersedes
 
-2026-10-10 to 10-13 offline study and cave expansion; 10-13 to 10-17 recorded-noise material, DSP cold load, hands-free loop; 10-17 to 10-19 cold-start product, volume ladder, census; 10-20 to 10-24 payload writers, 24/48 kHz, fine ladder, click hunt; 10-25 to 10-27 free-edge/poll experiments, native 32 kHz payload, boot-start, light-dark, idle power-off; 2026-10-28 the DSP read/write census (probes 361-365), the 48 kHz ring fix (366-367, `docs/ring-buffer-fix.md`), the program-memory window (368-377), the lean generator (380, `docs/dsp-generator-route.md`), the stock reflash and the single flash. `docs/PROBE-CATALOG.md` section 13 summarises probes 182-381 by era; it cites the project's internal lab notebook (`docs/field-log.md`) for detail, which is not included in this export.
+- "45-word routine" and "within 2.4 dB of the recorded noise" (the 2026-10-28 state): the current generator is a 67-word state-variable-filter chain and is tuned to a different target (the source recording by ear), not to a recorded loop.
+- "A physical long press and a physical power-off while playing are untested": tested by hand, see section 3.
+- "The delay after power-off is the stock's": it was the cave's own 16 s audio-busy hold (`docs/RELEASE-NOTES.md`, power-off fix).
+- "Delivery of DSP code cannot come through the signed filesystem": the filesystem route is closed, but the DSP's program memory is writable at run time through its PM window (`docs/dsp-generator-route.md`).
+
+## 7. Rules that still bind
+
+- Never send console events 0x4021 (BootSetMode 7: the speaker drops to USB 4005, only a USB replug cures it) or 0x4022 (loader mode).
+- After every console event read the 40fe node's `DEVPKEY_Device_LastArrivalDate`; a reset moves it.
+- Every flash follows `docs/FLASH-PROTOCOL.md`: foreground, read every line, full readback before the next flash.
+- Partition-2 writes (the writer) only on a unit you are willing to lose.

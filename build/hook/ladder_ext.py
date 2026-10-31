@@ -38,6 +38,33 @@ class Prog:
     def BLK(self): self.items.append(("blk",))
 
 
+def build_xprog(G):
+    """TABLEX (probe405, opt-in): the handler complex that ladder_core emitted into XPROG (HANDLER .. SAY, REARM) becomes the EXT block HX, and ARM becomes the EXT block ARMX
+    (ARM's tail jump to REARM is replaced by a private copy of REARM's body, so the two blocks are independent and each can be pinned far from its call site). Main labels (POKE, AUTOSTART, SPEAKR, RSEND ...)
+    are called by their placed addresses. Instruction content is identical to the window code of probe402."""
+    X = list(G['XPROG'])
+    L = G['label_addr']
+    own = {it[1] for it in X if it[0] == "label"}
+    assert not (G.get('VMREAD') or G.get('G5DIAG')), 'TABLEX: the handler AUTOSTART call goes straight to EXTH'
+    def conv(it):
+        if it[0] == "bsr" and it[1] == "AUTOSTART": return ("bsr", "EXTH")        # the old handler bsr to AUTOSTART was a retargeted 3-word operand (-> EXTH); EXTH is an EXT block now called directly
+        if it[0] == "bsr" and isinstance(it[1], str) and it[1] not in own: return ("bsr", L[it[1]])
+        if it[0] == "br": assert it[2] in own, it
+        return it
+    X = [conv(it) for it in X]
+    ia = X.index(("label", "ARMX"))
+    ib = [k for k, it in enumerate(X) if it[0] == "label" and k > ia][0]            # the label after ARM's items (NOPLAY)
+    arm = X[ia:ib]
+    hx = X[:ia] + X[ib:]
+    ir = hx.index(("label", "REARM"))
+    ie = [k for k in range(ir + 1, len(hx)) if hx[k] == ("w", [0xF80F])][0]
+    rearm_body = hx[ir + 1:ie + 1]                                                    # REARM's body incl. its leavel -8
+    assert arm[-1] == ("br", 0xE0, "REARM"), arm[-1]
+    arm = arm[:-1] + rearm_body
+    assert not any(it[0] == "br" and it[2] == "REARM" for it in arm)
+    return [("blk",)] + hx + [("blk",)] + arm
+
+
 def build_scan(G):
     """probe323: SCANSYNC, placed FIRST in the AY pool (it calls only stock addresses) so that the product's main layout, which was packed with no room to spare, only gains two 3-word call sites.
     AL = the noise mode (1 ON, 0 OFF), preserved. ON: if @0x564 bit 10 or 11 (page / inquiry scan on) is set -> the stock page-scan-off and inquiry-scan-off wrappers (nothing is sent when both are clear).
@@ -90,6 +117,8 @@ def build_program(G, STAGE, VARIANT=''):
     WMS = WATCH_MS if NEWF else 10000
     P = Prog()
     ca = G['ca']
+    TRIMSW = bool(G.get('TRIMSW'))    # opt-in (2026-10-30, docs/deep/layout-engine-2026-10-30.md): drop the explicit swallows of the COLD (0x2E) and NOREWR (0x24) flag messages; IDGUARD already ends every id that is not REL/MODE/AUTO, so the swallow is redundant (well-supported by reading, NOT yet run on hardware)
+    if TRIMSW: assert G.get('IDGUARD') and VARIANT == 'v' and not ({0x2E, 0x24} & {G['REL_ID'], G['MODE_ID'], G['AUTO_ID']}), 'TRIMSW needs IDGUARD'
     W, BSR, BR, LBL, BLK = P.W, P.BSR, P.BR, P.LBL, P.BLK
     imm = ca.imm_words
     TASK_ADDR = G['TASK_ADDR']
@@ -137,8 +166,22 @@ def build_program(G, STAGE, VARIANT=''):
         if NEWF:
           # probe275: 0x4002 EventUsrPowerOff with the mode ON = a press of OFF (mute at once, hold released later); 0x4758 stream start while the DSP is OURS (cold-owned flag 0x2E) = YIELD to the phone: OFF, so the stock decoder can load and music plays
           W(0x0317); W(*imm(0x4002, 0x84)); BR(0xF0, "EV_5")
-          BSR(L['PEEKMODE']); W(0x0084); BR(0xF4, "EV_X")
-          BSR("MODETOGX"); BR(0xE0, "EV_X")
+          BSR(L['PEEKMODE']); W(0x0084); BR(0xF4, "EV_P" if (G.get('PWRREL') or G.get('PWRREL2')) else "EV_X")
+          BSR("MODETOGX")
+          if G.get('PWRREL2'):
+              # probe428 (the payload LOOP product's form of PWRREL; docs/deep/probe428-loop-2026-10-31.md): in the loop a chunk (an ADPCM transform on Kalimba port 3) is usually in flight at the
+              # power-off and the 16 s hold exists to keep the stock away from the DSP until it has ended (rule 4: never speak / never let the stock reload the DSP while our transform holds port 3).
+              # So the release goes through RELFREE: SetAudioBusy(0) (RELEASE0, only if the word is our task) ONLY when port 3 has no transform (StreamKalimbaSink(3) = 0 = no DSP, or
+              # TransformFromSink(ksink) = 0 = free); a chunk still in flight keeps the hold, and its free edge (0x8026 in EXTH, XF_R below) releases it then. The REL timer (16 s) stays as the backstop.
+              assert G.get('FREEEDGE') and not G.get('GEN') and not G.get('PWRREL'), 'PWRREL2 is the loop product form: needs FREEEDGE, no GEN, not together with PWRREL'
+              LBL("EV_P"); BSR("RELFREE")
+          elif G.get('PWRREL'):
+              # probe427 (owner 2026-10-30: after a power-off with the noise playing, two more presses were needed to power on; docs/deep/poweroff-with-noise-2026-10-30.md):
+              # a power-off (0x4002) releases OUR audio-busy hold AT ONCE (RELEASE0: SetAudioBusy(0) only if the word is our task), mode ON (after the OFF above) or OFF (a power-off
+              # inside the 16 s after a press-OFF). The lean generator has no chunk in flight, so nothing needs the hold after an OFF; the stock power-off and the next power-on
+              # announcement are MessageSendConditionally on that word and were parked for up to 16 s (REL). The REL timer still fires and finds the word not ours: no-op.
+              LBL("EV_P"); BSR(L['RELEASE0'])
+          BR(0xE0, "EV_X")
           LBL("EV_5")
           if not G.get('NOYIELD'):      # probe286 (diagnostic build) drops the stream-start yield to make room for the DIAG6 speech
               W(0x0317); W(*imm(0x4758, 0x84)); BR(0xF0, "EV_6")
@@ -411,7 +454,7 @@ def build_program(G, STAGE, VARIANT=''):
         W(0x0317); BSR("SPEAKD"); W(0xF80F)
         LBL("XD_1")
     if VARIANT == 'v':
-        if NEWF:
+        if NEWF and not TRIMSW:
             W(*imm(COLD_ID, 0x84)); BR(0xF0, "XU_0")                 # the cold-owned flag message expired (not re-armed): swallow it
             W(0xF80F)
             LBL("XU_0")
@@ -419,6 +462,20 @@ def build_program(G, STAGE, VARIANT=''):
         BSR("ENSURE")
         W(0xF80F)
         LBL("XU_2")
+        if G.get('STARTWAIT'):
+            W(*imm(0x2F, 0x84)); BR(0xF0, "XU_5")                                # probe384: the 40 s closer: ENSURE with AL = 0x2F (no gate)
+            BSR("ENSURE")
+            W(0xF80F)
+            LBL("XU_5")
+        if G.get('NOREWR') and not TRIMSW:
+            W(*imm(0x24, 0x84)); BR(0xF0, "XU_7")                                # probe388: the GENF flag message expired: swallow it
+            W(0xF80F)
+            LBL("XU_7")
+        if G.get('SILENTDROP'):
+            W(*imm(0x32, 0x84)); BR(0xF0, "XU_6")                                # probe386/387: the prompt-enable restore (8 s after the press)
+            BSR("SILRST")
+            W(0xF80F)
+            LBL("XU_6")
         if not G.get('NOWATCH'):
             W(*imm(0x2D, 0x84)); BR(0xF0, "XU_4")
             BSR("WATCH")
@@ -447,12 +504,19 @@ def build_program(G, STAGE, VARIANT=''):
         LBL("XL_1")
     if G.get('FREEEDGE'):
         W(*imm(0x8026, 0x84)); BR(0xF0, "XF_1")                                   # probe337: MESSAGE_STREAM_DISCONNECT = the free edge of our chunk: the pending level poll is brought forward to 1 ms from now
-        BSR(L['CANCELANY']); W(0x0084); BR(0xF4, "XF_X")                          # AL = level + 1, or 0 (no poll pending: the mode is OFF): nothing
+        BSR(L['CANCELANY']); W(0x0084); BR(0xF4, "XF_R" if G.get('PWRREL2') else "XF_X")     # AL = level + 1, or 0 (no poll pending: the mode is OFF): nothing (PWRREL2: the release check below)
         W(*imm(G['LEVEL_BASE'] - 1, 0x34)); W(*imm(G.get('FREEDELAY', 1), 0x10)); BSR(L['RSEND'])
+        if G.get('PWRREL2'):
+            # probe428: the free edge of the LAST chunk (no poll pending) with the mode OFF (a press-OFF or a power-off happened): release our audio-busy hold now, not 16 s after the OFF,
+            # provided port 3 really is free (RELFREE reads TransformFromSink first). Mode ON (STARTWAIT waiting, or a restart pending): nothing changes.
+            W(0xF80F)
+            LBL("XF_R")
+            BSR(L['PEEKMODE']); W(0x0084); BR(0xF0, "XF_X")
+            BSR("RELFREE")
         LBL("XF_X"); W(0xF80F)
         LBL("XF_1")
     W(*imm(0x8024, 0x84)); BR(0xF0, "XH_3")
-    W(0x101B); W(0x0016)                 # ld X,@(16,Y) the Message ; ld AL,@(0,X) the DSP message id
+    W(0x121B if G.get('TABLEX') else 0x101B); W(0x0016)                 # ld X,@(16,Y) the Message ; ld AL,@(0,X) the DSP message id.  TABLEX (probe405): the window trampoline's 2-slot frame sits between the handler frame and the scheduler's: @(18,Y)
     if G.get('PEEKCEN'):
         W(*imm(0x7AB2, 0x84)); BR(0xF0, "XH_P")                                    # probe359: the PEEK reply (X still = the message)
         W(0x1017); BSR("PCREPLY"); W(0xF80F)                                       # probe364: the message POINTER goes in AL (as the stock fn_38bb1 takes it); PCREPLY reloads X from its frame
@@ -944,6 +1008,7 @@ def build_program(G, STAGE, VARIANT=''):
         if G.get('LEDDARK'): BSR("LEDDARK")                                    # probe357: AL = the mode, preserved
         if G.get('DEEPSLEEP'): BSR("DSLEEP")                                     # probe339: AL = the mode (1 ON, 0 OFF), preserved: VmDeepSleepEnable(0) while the noise plays, (1) at the OFF
         if G.get('CSTOCK'): BSR("CSTOCK")                                        # probe335: cancel the stock message ids CSTOCK_LO..CSTOCK_HI of task 0x512 (AL, the mode, is preserved)
+        if G.get('SILENTDROP'): BSR("SILMUTE")                                  # probe386/387: AL = the mode, preserved: ON -> the stock prompt-enable bit is cleared for 8 s so that the press-initiated disconnect announcement stays silent
         if G.get('SCAN'): BSR(G['SCAN_ADDR']['SCANSYNC'])                       # probe323: AL = the mode (1 ON, 0 OFF), preserved: ON -> Bluetooth scans off; OFF -> the stock scans back on (state 1: page; state 2: page + inquiry)
         W(0x0084); BR(0xF4, "MX_O" if NEWF else "MX_X")
         if G.get('DIAG6'):
@@ -955,7 +1020,9 @@ def build_program(G, STAGE, VARIANT=''):
         if VARIANT == 'v' and not G.get('NOWATCH'):
             W(*imm(0x2D, 0x10)); W(*imm(TASK_ADDR, 0x14)); BSR(CANCELFIRST)    # the watchdog chain (WATCH_MS) is armed once per ON
             W(*imm(0x2D, 0x14)); W(*imm(WMS, 0x10)); BSR(L['RSEND'])
+        if G.get('STARTWAIT'): BSR("SWGATE"); W(0x0084); BR(0xF4, "MX_G"); BSR(L['CANCELANY']); LBL("MX_G")      # probe384: the stock owns the DSP: the first poll (a level POKE into it) is cancelled; the ENSURE that passes the gate re-creates the poll (its EN_D path)
         W(*imm(0x2C, 0x14)); W(*imm(500, 0x10)); BSR(L['RSEND'])             # ENSURE in 0.5 s: no DSP -> the cold bring-up; a DSP loaded -> amp-on (the old poll armed by MODETOG plays)
+        if G.get('STARTWAIT'): W(*imm(0x2F, 0x14)); W(*imm(40000, 0x10)); BSR(L['RSEND'])       # probe384: the closer: 40 s after the press ENSURE runs with the gate skipped
         if NEWF:
             BR(0xE0, "MX_X")
             LBL("MX_O")
@@ -974,6 +1041,12 @@ def build_program(G, STAGE, VARIANT=''):
             BSR(G['GETBUSY']); W(0x0084); BR(0xF4, "EN_B")                   # a stock prompt or tone owns the audio-busy word: leave the DSP alone, look again (L1a F5)
             W(*imm(TASK_ADDR, 0x84)); BR(0xF0, "EN_R")
             LBL("EN_B")
+        if G.get('STARTWAIT'):
+            # probe384: never PM-write / poke into a DSP the STOCK owns (blk[24] != 0 or sinkState >= 3): look again in 1 s (the 0x2F closer, armed by the press, forces the start after 40 s)
+            W(0x0317); W(*imm(0x2F, 0x84)); BR(0xF4, "EN_F")
+            BSR("SWGATE"); W(0x0084); BR(0xF0, "EN_R")
+            LBL("EN_F")
+            W(*imm(0x2F, 0x10)); W(*imm(TASK_ADDR, 0x14)); BSR(CANCELFIRST)
         W(*imm(3, 0x14)); BSR(KSINK); W(0x0084); BR(0xF4, "EN_C")                 # StreamKalimbaSink(3) = 0: no DSP
         if not G.get('GEN'):
             BSR(ca.STUB['TransformFromSink']); W(0x0084); BR(0xF0, "EN_R")             # a chunk still on port 3: look again in 1 s (rule R1: no 0x1072 / SPEAK / reload while it plays)
@@ -989,7 +1062,7 @@ def build_program(G, STAGE, VARIANT=''):
         W(0xF80F)
         LBL("EN_R")
         W(0x0317); W(0x0084); BR(0xF4, "EN_X")                                 # the watchdog (AL = 0): a chunk on port 3 = healthy, done
-        W(*imm(0x2C, 0x14)); W(*imm(1000, 0x10)); BSR(L['RSEND'])
+        W(*imm(0x2C, 0x14)); W(*imm(500 if G.get('SILENTDROP') else 1000, 0x10)); BSR(L['RSEND'])
         W(0xF80F)
         LBL("EN_W")
         BSR("ENSURE2")
@@ -1001,7 +1074,12 @@ def build_program(G, STAGE, VARIANT=''):
         W(0x0084); BR(0xF4, "EN_D")
         W(*imm(G['LEVEL_BASE'] - 1, 0x34)); W(*imm(50, 0x10)); BSR(L['RSEND'])      # alive (between two chunks or just armed by the press): put the poll back
         BSR("AMPON")                                                           # and make sure the amplifier is on (idempotent: the stock checks fn_0f215)
+        if G.get('NOREWR'):
+            W(*imm(0x24, 0x10)); W(*imm(TASK_ADDR, 0x14)); BSR(CANCELFIRST); W(0x0084); BR(0xF4, "EN_J")      # probe388: GENF pending = the generator was written moments ago (the redundant ENSURE of the 0x4716 event): put it back and do not rewrite
+            W(*imm(0x24, 0x14)); W(*imm(8000, 0x10)); BSR(L['RSEND']); BR(0xE0, "EN_K")
+            LBL("EN_J")
         if G.get('GEN'): W(*imm(0x1100, 0x14)); W(*imm(50, 0x10)); BSR(L['RSEND'])      # probe380: (re)write and hook the generator (UNHOOK first)
+        if G.get('NOREWR'): LBL("EN_K")
         W(0xF80F)
         LBL("EN_D")
         if DIAG: W(*imm(0x28, 0x14)); BSR(L['SPEAKR'])                       # test code 2 (battery 20%): DSP loaded, port free, NO poll pending = the loop was dead
@@ -1009,6 +1087,30 @@ def build_program(G, STAGE, VARIANT=''):
         if G.get('GEN'): W(*imm(0x1100, 0x14)); W(*imm(50, 0x10)); BSR(L['RSEND'])
         W(*imm(0x20, 0x14)); BSR(L['AUTOSTART'])
         W(0xF80F)
+        if G.get('SILENTDROP'):
+            # probe386/387: the stock speak core fn_0df01 returns at once when bit 13 of @0x570 (voice prompts on) is clear (0x0df06..0x0df0c). The press-initiated drop makes the stock say '<name> disconnected':
+            # clear that bit just before the drop (only when it is set: a user who turned prompts off is left alone) and put it back 8 s later (id 0x32). RAM only: the stock saves the setting to PS only from its own prompts-toggle.
+            BLK(); LBL("SILMUTE")                                              # AL = the mode (1 ON): preserved (enterl -4: slots 0 and 1 are ours, 2 and 3 the saved return address)
+            W(0xFC0B); W(0x0027)
+            W(0x0084); BR(0xF4, "SM_X")                                        # mode OFF: nothing
+            W(*imm(0x570, 0x15)); W(*imm(0x2000, 0xC4)); W(0x0084); BR(0xF4, "SM_X")      # prompts already off: nothing, and no restore
+            W(*imm(0x570, 0x15)); W(*imm(0xDFFF, 0xC4)); W(*imm(0x570, 0x25))
+            W(*imm(0x32, 0x10)); W(*imm(TASK_ADDR, 0x14)); BSR(CANCELFIRST)    # at most one restore pending
+            W(*imm(0x32, 0x14)); W(*imm(8000, 0x10)); BSR(L['RSEND'])
+            LBL("SM_X")
+            W(0x0017); W(0xFC0F)
+            BLK(); LBL("SILRST")
+            W(0xFE0B)
+            W(*imm(0x570, 0x15)); W(*imm(0x2000, 0xB4)); W(*imm(0x570, 0x25))   # or AL,#0x2000
+            W(0xFE0F)
+        if G.get('STARTWAIT'):
+            BLK(); LBL("SWGATE")                                               # probe384: AL = 1 = WAIT (sinkState >= 3, or the stock plugin owns a DSP: blk[24] != 0), else 0; read only
+            W(0xFE0B)
+            W(*imm(0x59E, 0x15)); W(*imm(3, 0x84)); BR(0xF8, "SW_W")
+            W(*imm(0x72B, 0x19)); W(0x1816); W(0x0084); BR(0xF4, "SW_X")
+            LBL("SW_W"); W(0x0114)
+            LBL("SW_X")
+            W(0xFE0F)
         # ---- WATCH: the product's watchdog, every 10 s while the mode is ON (armed by MODETOGX): re-arm itself, then the ENSURE check (any cause that stops the loop is healed within ~10 s)
         if not G.get('NOWATCH'):
           BLK(); LBL("WATCH")
@@ -1040,7 +1142,7 @@ def build_program(G, STAGE, VARIANT=''):
             W(*imm(0x20, 0x14)); W(0x0427)
             LBL("OA_C")
             W(0x0413 if G.get('CANCELALL') else 0x0412); W(*imm(TASK_ADDR, 0x14)); BSR(0x395E7 if G.get('CANCELALL') else CANCELFIRST)      # probe295 (AH F4/I6): CANCELALL = the library MessageCancelAll(AL = task, AH = id), a loop of CancelFirst: a duplicate chain of an id does not survive an OFF. ALSO FIXES a latent defect of the OFFLOOP of probes 287/288 (kept byte-for-byte for them): 0x0412 is `ld AH,@(4,X)` (X = the link register = a code address), not `ld AH,@(4,Y)` = 0x0413, so their loop cancelled garbage ids (cavesim: 0, then 0x76 x14), not 0x20..0x2E
-            W(0x0417); W(*imm(1, 0x34)); W(0x0427); W(*imm(0x2E if G.get('DACREL3') else 0x2F, 0x84)); BR(0xFC, "OA_C")
+            W(0x0417); W(*imm(1, 0x34)); W(0x0427); W(*imm(0x2E if G.get('DACREL3') else (0x30 if G.get('STARTWAIT') else 0x2F), 0x84)); BR(0xFC, "OA_C")
         else:
           for _id in ((STG_B, G['AUTO_ID'], 0x2D, 0x2C) if G.get('DACREL3') else (STG_B, G['AUTO_ID'], 0x2D, 0x2C, COLD_ID)):
             W(*imm(_id, 0x10)); W(*imm(TASK_ADDR, 0x14)); BSR(CANCELFIRST)
@@ -1068,6 +1170,18 @@ def build_program(G, STAGE, VARIANT=''):
         if G.get('GEN'): W(*imm(0x16C3, 0x14)); BSR("HOOKP")                       # probe380: the stock tone-copy handler back (M[0x8367] := 0x16C3) at every OFF/MUTE
         LBL("MU_X")
         W(0xF80F)
+        if G.get('PWRREL2'):
+            # ---- RELFREE (probe428): release OUR audio-busy hold only when port 3 has no transform. StreamKalimbaSink(3) = 0 (no DSP: nothing of ours can be in flight) or
+            #      TransformFromSink(ksink) = 0 (the port is free: the same read-only test the handler makes before every rebuild) -> RELEASE0 (SetAudioBusy(0) iff the word is our task).
+            #      A transform on the port (ours in flight, or a stock tone's): nothing; the REL timer releases 16 s after the OFF as before. Read-only traps and one conditional write; no message, no DSP write.
+            BLK(); LBL("RELFREE")
+            W(0xFE0B)                                                                 # enterl -2 (no local slot: nothing is stored)
+            W(*imm(3, 0x14)); BSR(KSINK); W(0x0084); BR(0xF4, "RF_R")                 # ksink = StreamKalimbaSink(3); 0 -> release
+            BSR(ca.STUB['TransformFromSink']); W(0x0084); BR(0xF0, "RF_X")           # AL = ksink still (cmp leaves it); a transform holds the port -> keep the hold
+            LBL("RF_R")
+            BSR(L['RELEASE0'])
+            LBL("RF_X")
+            W(0xFE0F)
         # ---- PEEKF: AL = a flag message id; AL = 1 if it is pending (put back at once for FLAG_MS), else 0
         if not (G.get('NOYIELD') and G.get('NOWATCH') and not (G.get('DACREL') or G.get('DACREL2') or G.get('DACREL3'))):      # probe288 (CENSUS) reads the cold flag destructively and needs no PEEKF
           BLK(); LBL("PEEKF")
@@ -1134,10 +1248,15 @@ def build_program(G, STAGE, VARIANT=''):
         #      slot j holds 7 PM words as (hi16, lo16) pairs; slot j lives 0x20 words after slot j-1 (the 3-word band at slot 3 is not a slot), so chunk c uses slot j = c + (c >= 3).
         #      Messages to the cave task: 0x1100 = UNHOOK (M[0x8367] := 0x16C3) + PM_WIN_ENABLE (M[0xFE65] := 1); 0x1101 = UNHOOK again; 0x1102 + c = chunk c (7 PM words); 0x1102 + NCH = HOOK; 0x1103 + NCH = HOOK again
         #      (covers a race with the timer reschedule store). One id per 50 ms (the project poll floor, rule R5); every id checks that the mode is still ON.
-        NCH = 7
+        NCH_T = 7                                              # chunks served from the data table (7 PM words each)
+        if G.get('TABLEX'): NCH_T = (G['GEN_NW'] + 6) // 7     # probe405: the table has 11 slots; chunks 0..NCH_T-1 are served from it (slot j = c + (c >= 3) + (c >= 8))
+        _GX = G.get('GEN_EXTRA') or ()
+        NCHX = (len(_GX) + 6) // 7                             # probe395 (NOISEGEN2): extra chunks of 7 PM words loaded straight from cave immediates
+        NCH = NCH_T + NCHX
         assert 0x1103 + NCH < 0x1110
         _base_data = ca.const_addr(G['GEN_TABLE_AT'][0])
-        assert 0x7400 <= _base_data <= 0xD39A - 0x20 * 8, hex(_base_data)
+        assert 0x7400 <= _base_data <= 0xD39A - 0x20 * (13 if G.get('TABLEX') else 8), hex(_base_data)
+        if G.get('TABLEX'): assert not G.get('GEN_EXTRA') and NCH_T <= 7 + len(G['GEN_TABLE_AT']) - 7 and NCHX == 0 and G['GEN_NW'] <= 7 * len(G['GEN_TABLE_AT'])
         BLK(); LBL("GLDPUT")                                  # AL = hi16, AH = lo16 of one PM word; the PM address is the CALLER's slot 3 (caller slot 3 = @(11,Y)); LO half (window 3) then HI half (window 2); address += 1
         W(0xF80B)
         W(0x0427); W(0x0523)
@@ -1160,6 +1279,9 @@ def build_program(G, STAGE, VARIANT=''):
         W(0x0417); W(*imm(3, 0x84)); BR(0xFC, "GR_A")
         W(*imm(1, 0x34))                                      # c >= 3: slot j = c + 1
         LBL("GR_A")
+        if G.get('TABLEX'):
+            W(*imm(9, 0x84)); BR(0xFC, "GR_B"); W(*imm(1, 0x34))      # j >= 9 (c >= 8): skip the 9-word band (slot 9 at 0x3E35D+..): slot j = c + 2
+            LBL("GR_B")
         W(0x05A0); W(*imm(_base_data, 0x34)); W(0x0527)       # asl #5 ; add the data pointer of slot 0 ; slot 5 = the pointer
         W(*imm(7, 0x14)); W(0x0427)                           # slot 4 = the word counter
         LBL("GR_L")
@@ -1169,6 +1291,35 @@ def build_program(G, STAGE, VARIANT=''):
         W(0x0417); W(*imm(0xFFFF, 0x34)); W(0x0427)           # counter -= 1
         W(0x0084); BR(0xF0, "GR_L")
         W(0xF80F)
+        _GLXV = os.environ.get('GLX_VARIANT', 'direct') if NCHX else ''
+        if NCHX and _GLXV == 'direct':
+            for _k in range(NCHX):
+                BLK(); LBL("GLX%d" % _k)                      # PM words 7*(7+k) .. +6 of the generator from immediates: slot 3 = the PM address, then (AL = hi16, AH = lo16, GLDPUT) per word
+                W(0xF80B)
+                W(*imm(0x2A00 + 7 * (NCH_T + _k), 0x14)); W(0x0327)
+                for _hi, _lo in _GX[7 * _k:7 * _k + 7]:
+                    W(*imm(_hi, 0x14)); W(*imm(_lo, 0x10)); BSR("GLDPUT")
+                W(0xF80F)
+        elif NCHX:
+            _SPLIT = ((0, 4), (4, 7)) if _GLXV == 'split' else ((0, 7),)
+            BLK(); LBL("GLRUNX")                              # AL = chunk c >= 7: dispatch to the straight-line blocks GLX(c - 7) (a / b)
+            W(0xF80B)
+            W(0x0427)                                         # slot 4 = c
+            for _k in range(NCHX):
+                W(0x0417); W(*imm(NCH_T + _k, 0x84)); BR(0xF0, "GX_%d" % (_k + 1))
+                for _nm in "ab"[:len(_SPLIT)]: BSR("GLX%d%s" % (_k, _nm))
+                BR(0xE0, "GX_END")
+                LBL("GX_%d" % (_k + 1))
+            LBL("GX_END")
+            W(0xF80F)
+            for _k in range(NCHX):
+                for _nm, (_i0, _i1) in zip("ab", _SPLIT):
+                    BLK(); LBL("GLX%d%s" % (_k, _nm))
+                    W(0xF80B)
+                    W(*imm(0x2A00 + 7 * (NCH_T + _k) + _i0, 0x14)); W(0x0327)
+                    for _hi, _lo in _GX[7 * _k + _i0:min(7 * _k + _i1, len(_GX))]:
+                        W(*imm(_hi, 0x14)); W(*imm(_lo, 0x10)); BSR("GLDPUT")
+                    W(0xF80F)
         BLK(); LBL("HOOKP")                                   # AL = the value: POKE M[0x8367] := AL (the tone-copy timer handler pointer)
         W(0xF80B)
         W(0x0127)
@@ -1181,6 +1332,9 @@ def build_program(G, STAGE, VARIANT=''):
         W(0xF80F)                                             # the mode went OFF: the chain ends here
         LBL("GM_ON")
         W(0x0317); W(*imm(0x1100, 0x84)); BR(0xF0, "GM_1")
+        if G.get('NOREWR'):
+            W(*imm(0x24, 0x10)); W(*imm(TASK_ADDR, 0x14)); BSR(CANCELFIRST)        # probe388: GENF, 'a generator write is fresh': at most one pending
+            W(*imm(0x24, 0x14)); W(*imm(8000, 0x10)); BSR(L['RSEND'])
         W(0x0014); W(0x0027); W(0x0227); W(*imm(1, 0x14)); W(0x0127); W(*imm(0xFE65, 0x10)); W(*imm(0x7AB3, 0x14)); BSR(KALMSG)       # PM_WIN_ENABLE := 1
         W(*imm(0x16C3, 0x14)); BSR("HOOKP"); BR(0xE0, "GM_N")
         LBL("GM_1")
@@ -1193,7 +1347,19 @@ def build_program(G, STAGE, VARIANT=''):
         LBL("GM_H1")
         W(*imm(0x2A00, 0x14)); BSR("HOOKP"); BR(0xE0, "GM_N")
         LBL("GM_C")
-        W(*imm((-0x1102) & 0xFFFF, 0x34)); BSR("GLRUN")      # AL = id - 0x1102 = c
+        W(*imm((-0x1102) & 0xFFFF, 0x34))                    # AL = id - 0x1102 = c
+        if NCHX:
+            W(*imm(NCH_T, 0x84)); BR(0xFC, "GM_T")           # c < 7: a chunk of the data table
+            if _GLXV == 'direct':
+                for _k in range(NCHX):                       # c >= 7: a chunk from cave immediates (probe395), direct dispatch (AL = c is intact until the call)
+                    W(*imm(NCH_T + _k, 0x84)); BR(0xF0, "GX_%d" % (_k + 1))
+                    BSR("GLX%d" % _k); BR(0xE0, "GM_N")
+                    LBL("GX_%d" % (_k + 1))
+                BR(0xE0, "GM_N")
+            else:
+                BSR("GLRUNX"); BR(0xE0, "GM_N")              # c >= 7: the dispatch block
+            LBL("GM_T")
+        BSR("GLRUN")
         LBL("GM_N")
         W(0x0317); W(*imm(1, 0x34)); W(*imm(50, 0x10)); BSR(L['RSEND'])
         W(0xF80F)
@@ -1325,7 +1491,11 @@ def build_evg(G, evtx_addr):
     imm = ca.imm_words
     BLK(); LBL("EVG")
     W(0xFC0B); W(0x0027)                                                 # enterl -4 ; st AL,@(0,Y)  the event
-    BSR("EVGCHK")                                                        # the reconcile (own block: the AY bands are only 12-14 words each)
+    if G.get('VMREAD'):
+        W(0x0017); BSR(G['_VRGO']); W(0x0084); BR(0xF4, "VG_P")             # probe382: a read-out trigger id is consumed here, BEFORE EVGCHK can clear @0x6d1 bit 15 (AL = 1); any other id goes on
+        W(0xFC0F)
+        LBL("VG_P")
+    BSR("EVGCHK")                                                       # the reconcile (own block: the AY bands are only 12-14 words each)
     if G.get('G5DIAG'):
         # probe300 (BN): arm the READ-ONLY G5 report on the yield path: a stream start (0x4758) while the mode is ON (EVTX turns it OFF below). One timer message DG_ID, DG_MS later. Nothing else is touched.
         Lm = G['label_addr']
@@ -1427,6 +1597,97 @@ def build_dg(G, exth_addr):
     W(*imm(0x27, 0x34)); BSR(Lm['SPEAKR'])                               # add AL,#0x27 ; speak (releases OUR hold first, a no-op when the stock owns the audio-busy word)
     LBL("DG_X")
     W(0xFC0F if G.get('G5TWO') else 0xFE0F)                              # leavel : back to HANDLER (DG_ID needs no EXTH)
+    return P.items
+
+
+VR_IDS = (0x4070, 0x4071, 0x4072, 0x4073)                      # probe382 read-out triggers (stock fn_01749 switch default arm; NEVER 0x4021 / 0x4022)
+VR_IDS_383 = (0x4070, 0x4071, 0x4072, 0x4073, 0x4074, 0x4075, 0x4076)   # probe383 (VMUNGATE): + 0x4074 blk[24], 0x4075 @0x73e, 0x4076 @0x72f (same safe default-arm family; NEVER 0x4021 / 0x4022)
+VR_KICK = 0x4077                                               # probe382: sends the ENSURE request (id 0x2C), speaks nothing
+
+
+def build_vr(G):
+    """probe382 VMREAD (READ-ONLY diagnostic, docs/deep/bug-2026-10-29-connected-device-no-noise.md): spoken read-out of VM state for the 'device connected, no noise' bug.
+    VRGO (called by EVG with AL = the event, BEFORE EVGCHK can clear @0x6d1 bit 15): AL = 1 if the event is a trigger (consumed, the stock never sees it), else 0.
+      0x4070 FLAGS (1 mode ON, 2 StreamKalimbaSink(3) != 0, 8 a heartbeat poll is pending) | 0x4071 the audio-busy word | 0x4072 @0x6d1 | 0x4073 @0x59e (sinkState)
+      0x4077 KICK: MessageSendLater(cave, 0x2C = ENSURE, 100 ms), nothing spoken.
+    A value is spoken as 6 octal digits (low first) + the check digit (sum mod 8), 3.5 s apart from +9 s, through the census digit messages 0x900 + d (seven MessageSendLater, as probe363).
+    Nothing is spoken (silent no-op) when the mode is ON and a DSP sink exists on port 3 (the noise may be running; the lean generator has no transform, CLAUDE.md rule 4).
+    VRGO..VRSDG are MAIN-layout blocks (the AY pool is too fragmented for ~150 words); VRW (AY pool, with EVG) is HANDLER's bsr AUTOSTART target (frameless, as DGW): ids 0x900..0x94F are speak digits (battery (d+1)*10 percent through SPEAKR), every other id goes to EXTH unchanged."""
+    P = Prog()
+    ca = G['ca']
+    W, BSR, BR, LBL, BLK = P.W, P.BSR, P.BR, P.LBL, P.BLK
+    imm = ca.imm_words
+    Lm = G['label_addr']
+    KS = G['KSINK']
+    BLK(); LBL("VRW")                                                     # FRAMELESS (EXTH reads HANDLER's frame at fixed offsets, as DGW): AL = the id; HANDLER's bsr AUTOSTART target
+    W(*imm(0x900, 0x84)); BR(0xFC, "VW_N")
+    W(*imm(0x950, 0x84)); BR(0xF8, "VW_N")
+    W(0xFE0B)                                                             # enterl -2
+    W(0x0FC4); W(*imm(0x27, 0x34)); BSR(Lm['SPEAKR'])                     # (id & 0x0F) + 0x27 = battery (digit+1)*10 percent, OUR hold released first
+    W(0xFE0F)                                                             # leavel -2: back to HANDLER
+    LBL("VW_N")
+    BR(0xE0, "EXTH")                                                      # every other id: EXTH, unchanged (it returns to HANDLER's caller itself)
+    BLK(); LBL("VRGO")
+    W(0xF80B); W(0x0327)                                                  # enterl -8 ; st AL,@(3,Y) the event
+    for _k, _id in enumerate(VR_IDS_383 if G.get('VMUNGATE') else VR_IDS):
+        W(0x0317); W(*imm(_id, 0x84)); BR(0xF0, "VR_%d" % (_k + 1))
+        if _k == 0: BSR("VRFLG")
+        elif _k == 1: BSR(G['GETBUSY'])
+        elif _k == 4: W(*imm(0x72B, 0x19)); W(0x1816)                      # probe383: ld X,@0x72b ; ld AL,@(24,X) = blk[24], the stock plugin DSP state (as DGW, read only)
+        else: W(*imm((0x6D1, 0x59E, 0, 0x73E, 0x72F)[_k - 2], 0x15))
+        BSR("VRSAY")
+        W(0x0114); W(0xF80F)                                              # AL = 1: consumed
+        LBL("VR_%d" % (_k + 1))
+    W(0x0317); W(*imm(VR_KICK, 0x84)); BR(0xF0, "VR_X")
+    W(*imm(0x2C, 0x14)); W(*imm(100, 0x10)); BSR(Lm['RSEND'])
+    W(0x0114); W(0xF80F)
+    LBL("VR_X")
+    W(0x0014); W(0xF80F)                                                  # not a trigger: AL = 0
+    BLK(); LBL("VRFLG")                                                   # AL = FLAGS
+    W(0xF80B)
+    W(0x0014); W(0x0527)                                                  # slot 5 = 0
+    BSR(Lm['PEEKMODE']); W(0x0084); BR(0xF4, "VF_1")
+    W(0x0517); W(*imm(1, 0x34)); W(0x0527)
+    LBL("VF_1")
+    W(*imm(3, 0x14)); BSR(KS); W(0x0084); BR(0xF4, "VF_3")
+    W(0x0517); W(*imm(2, 0x34)); W(0x0527)
+    LBL("VF_3")
+    if G.get('VMUNGATE'):
+        W(*imm(0x72E, 0x15)); W(0x0084); BR(0xF4, "VF_5")                  # probe383: bit 4 = @0x72e != 0 (EVGCHK's null test)
+        W(0x0517); W(*imm(4, 0x34)); W(0x0527)
+        LBL("VF_5")
+    BSR(Lm['CANCELANY']); W(0x0084); BR(0xF4, "VF_4")                     # AL = level + 1 of the pending heartbeat poll, else 0 (the cancel is undone at once)
+    W(*imm(G['LEVEL_BASE'] - 1, 0x34)); W(*imm(G.get('GEN_HB_MS', 4000), 0x10)); BSR(Lm['RSEND'])
+    W(0x0517); W(*imm(8, 0x34)); W(0x0527)
+    LBL("VF_4")
+    W(0x0517)
+    W(0xF80F)
+    BLK(); LBL("VRSAY")                                                   # AL = the value: speak it unless the noise may be running
+    W(0xF80B); W(0x0427)                                                  # slot 4 = the value
+    if not G.get('VMUNGATE'):
+        BSR(Lm['PEEKMODE']); W(0x0084); BR(0xF4, "VR_GO")                     # the mode is OFF: speakable
+        W(*imm(3, 0x14)); BSR(KS); W(0x0084); BR(0xF0, "VR_NO")               # ON with a DSP sink: the noise may be running: silent no-op
+    LBL("VR_GO")
+    W(0x0417); W(*imm(9000, 0x10)); BSR("VRWORD")
+    LBL("VR_NO")
+    W(0xF80F)
+    BLK(); LBL("VRWORD")                                                  # AL = a 16-bit value, AH = the first delay (ms): as PCWORD (probe362)
+    W(0xF80B); W(0x0427); W(0x0323)
+    W(*imm(6, 0x14)); W(0x0527)
+    W(0x0014); W(0x0227)
+    LBL("VW_L")
+    W(0x0417); W(0x07C4); W(0x0237); W(0x0227)
+    W(0x0417); W(0x07C4); W(*imm(0x900, 0x34)); BSR("VRSDG")
+    W(0x0417); W(0x0009); W(0x03A4); W(0x0427)
+    W(0x0517); W(*imm(0xFFFF, 0x34)); W(0x0527); W(0x0084); BR(0xF0, "VW_L")
+    W(0x0217); W(0x07C4); W(*imm(0x900, 0x34)); BSR("VRSDG")
+    W(0x0317)
+    W(0xF80F)
+    BLK(); LBL("VRSDG")
+    W(0xF80B); W(0x0327)
+    W(0x0B13); W(0x0317); BSR(Lm['RSEND'])
+    W(0x0B17); W(*imm(3500, 0x34)); W(0x0B27)
+    W(0xF80F)
     return P.items
 
 
@@ -1671,13 +1932,161 @@ def place_once(G, items, bands, seed, required=()):
     raise RuntimeError('ladder: layout did not converge')
 
 
+
+
+def place_once_fg(G, items, bands, seed, required=()):
+    """FILLGAPS variant of place_once (opt-in, env FILLGAPS=1; 2026-10-30 layout-engine work, docs/deep/layout-engine-2026-10-30.md): every cluster keeps a list of free runs [lo, hi) that blocks consume from the LEFT, blocks are placed largest first, an item that does not fit moves to a free run chosen by a seeded policy (best fit / first fit / random fit) and EARLIER runs stay usable by later blocks (place_once abandons the rest of a band when an item jumps away). A failed block is retried in the other clusters (cyclic bump). Everything after the placement loop is the unchanged place_once code."""
+    ca = G['ca']
+    term_ops = ca.TERMINATOR_OPS
+    def needs_follow(it):
+        if it[0] == "bsr": return True
+        if it[0] == "br": return it[1] != 0xE0
+        if it[0] == "w": return (it[1][-1] & 0xFF) not in term_ops
+        return False
+    SPAN = int(__import__("os").environ.get("SPAN", "30000"))
+    clusters = []
+    for b in sorted(bands):
+        if clusters and b[1] - clusters[-1][0][0] <= SPAN: clusters[-1].append(b)
+        else: clusters.append([b])
+    # blocks
+    starts = [i for i, it in enumerate(items) if it[0] == "blk"]
+    blocks = [(s, starts[n + 1] if n + 1 < len(starts) else len(items)) for n, s in enumerate(starts)]
+    def bsize(s, e):
+        return sum(len(it[1]) if it[0] == "w" else 3 if it[0] == "bsr" else 2 if it[0] == "br" else 0 for it in items[s:e])
+    import random
+    rnd = random.Random(seed)
+    import os
+    if os.environ.get('BLOCKSIZES'): print('BLOCKSIZES', sorted(((bsize(*b), items[b[0] + 1][1]) for b in blocks), reverse=True), [sum(y - x for x, y in c) for c in clusters])
+    cap = [sum(y - x for x, y in c) * float(__import__("os").environ.get("CAPF", "0.7")) for c in clusters]
+    assign = {}
+    for (s, e) in sorted(blocks, key=lambda b: -bsize(*b) * (1.0 if seed == 0 else rnd.uniform(0.8, 1.2))):
+        best = max(range(len(cap)), key=(lambda c: cap[c] * rnd.uniform(0.4, 1.6)) if (seed > 0 and os.environ.get('RANDASSIGN')) else (lambda c: cap[c]))     # RANDASSIGN (probe288): diversify the cluster choice across seeds
+        assign[s] = best; cap[best] -= bsize(s, e)
+    _force = G.get('FORCE')                                                # probe300: {block label: start address of a band of the wanted cluster}; absent for every older image
+    if _force:
+        for (s, e) in blocks:
+            nm = items[s + 1][1]
+            if nm in _force:
+                assign[s] = [ci for ci, cb_ in enumerate(clusters) if any(b_[0] == _force[nm] for b_ in cb_)][0]
+    if os.environ.get('REQPIN'):
+        # REQPIN: the blocks a retargeted OLD 3-word bsr operand calls (required) must lie more than 65 k words from the call site: assign them to such a cluster up front (the seed picks among the eligible ones)
+        for (ra_, rname_) in required:
+            for (s, e) in blocks:
+                if items[s + 1][1] == rname_:
+                    elig = [ci for ci, cb_ in enumerate(clusters) if all(abs(b_[0] - ra_) > 70000 and abs(b_[1] - ra_) > 70000 for b_ in cb_) and cap[ci] >= bsize(s, e) * 0.3]
+                    if elig: assign[s] = max(elig, key=lambda ci: cap[ci] * rnd.uniform(0.4, 1.6))
+    br_size = {i: 1 for i, it in enumerate(items) if it[0] == "br"}       # the size each branch NEEDS (encoding)
+    bs_size = {i: 1 for i, it in enumerate(items) if it[0] == "bsr"}
+    br_place = dict(br_size)                                               # the size it is PLACED with: only ever grows (a short branch in a longer slot is padded with `bra +1`), so the layout converges
+    bs_place = dict(bs_size)
+    bump = {}
+    order_ = sorted(blocks, key=lambda b: -bsize(*b))
+    for iteration in range(60):
+        addrs = [None] * len(items)
+        extra = {}                     # connector address -> (target, size)
+        failed = False
+        free = [[[x, y] for (x, y) in cb] for cb in clusters]       # per cluster: free runs [lo, hi), consumed from the left
+        for (s, e) in order_:
+            c = (assign[s] + bump.get(s, 0)) % len(clusters)
+            if bump.get(s, 0) >= len(clusters): raise RuntimeError('ladder: no cluster has room for the block at item %d (%s, %d words)' % (s, items[s + 1][1], bsize(s, e)))
+            runs = free[c]
+            brnd = random.Random(seed * 1000003 + s)       # same decisions in every iteration of this seed
+            pol = brnd.random()
+            cur = None
+            prevk = None
+            i = s + 1
+            while i < e:
+                it = items[i]
+                if it[0] == "label":
+                    addrs[i] = None; i += 1; continue
+                sz = len(it[1]) if it[0] == "w" else bs_place[i] if it[0] == "bsr" else br_place[i]
+                reserve = 2 if needs_follow(it) else 0
+                if cur is not None and runs[cur][0] + sz + reserve <= runs[cur][1]:
+                    addrs[i] = runs[cur][0]; runs[cur][0] += sz; prevk = i; i += 1
+                    continue
+                need = sz + reserve
+                if cur is None: need = max(need, 6)            # never start a block in the last 6 words of a run
+                cand = [k for k, r in enumerate(runs) if k != cur and r[1] - r[0] >= need]
+                if not cand:
+                    bump[s] = bump.get(s, 0) + 1; failed = True; break
+                if pol < 0.6:
+                    # tightest fit: the run whose room is used best by the longest prefix of the remaining items (fewest wasted words, so fewer connectors)
+                    def _pfx(room):
+                        tot = 0; j = i
+                        while j < e:
+                            itj = items[j]
+                            if itj[0] == "label": j += 1; continue
+                            szj = len(itj[1]) if itj[0] == "w" else bs_place[j] if itj[0] == "bsr" else br_place[j]
+                            if tot + szj + (2 if needs_follow(itj) else 0) > room: break
+                            tot += szj; j += 1
+                        return tot, j >= e
+                    def _score(k):
+                        room = runs[k][1] - runs[k][0]
+                        tot, fin = _pfx(room)
+                        return (room - tot - (3 if fin else 0), -tot, k)
+                    k = min(cand, key=_score)
+                elif pol < 0.8: k = cand[0]                                                  # first fit
+                else: k = brnd.choice(cand)                                                  # random fit
+                if cur is not None and prevk is not None and needs_follow(items[prevk]):
+                    tgt_ = runs[k][0]
+                    addr_ = runs[cur][0]
+                    csz = 1 if -128 <= tgt_ - addr_ <= 127 else 2
+                    assert addr_ + csz <= runs[cur][1], ('ladder: reserve failed', hex(addr_), csz, hex(runs[cur][1]))
+                    extra[addr_] = (tgt_, csz); runs[cur][0] += csz
+                cur = k
+            if failed: break
+        if failed: continue
+        # labels
+        lab = {}
+        for i, it in enumerate(items):
+            if it[0] != "label": continue
+            j = i + 1
+            while j < len(items) and (items[j][0] in ("label", "blk")): j += 1
+            lab[it[1]] = addrs[j]
+        # the two retargeted OLD 3-word bsr operands must be encodable at these distances
+        for (ra, rname) in required:
+            if not bsr3_ok(lab[rname] - (ra + 2)): raise RuntimeError('ladder: the old bsr at %#x cannot reach %s at %#x' % (ra, rname, lab[rname]))
+        # branch sizes: each item NEEDS a size (encoding) but is PLACED with a size that only ever grows; a short form in a longer slot is padded with `bra +1`
+        ok = True
+        for i, it in enumerate(items):
+            if it[0] == "bsr":
+                t = lab[it[1]] if isinstance(it[1], str) else it[1]
+                v = t - addrs[i]
+                want = 1 if -126 <= v <= 126 else 2 if bsr2_ok(v - 1) else 3
+                if want == 3 and not bsr3_ok(v - 2): raise RuntimeError('ladder: a 3-word bsr cannot encode distance %d' % v)
+                bs_size[i] = want
+                if want > bs_place[i]: bs_place[i] = want; ok = False
+            elif it[0] == "br":
+                _bt = lab[it[2]] if isinstance(it[2], str) else it[2]
+                v = _bt - addrs[i]
+                want = 1 if -128 <= v <= 127 else (2 if br2_ok(_bt - (addrs[i] + 1)) else 3)
+                if want == 3: raise RuntimeError('ladder: a branch needs 3 words (blocks too far apart)')
+                br_size[i] = want
+                if want > br_place[i]: br_place[i] = want; ok = False
+        if ok:
+            # every falling-through item must be followed by its successor or by a connector
+            for (s_, e_) in blocks:
+                prev = None
+                for i in range(s_ + 1, e_):
+                    it = items[i]
+                    if it[0] == "label": continue
+                    if prev is not None and needs_follow(items[prev]):
+                        psz = len(items[prev][1]) if items[prev][0] == "w" else bs_place[prev] if items[prev][0] == "bsr" else br_place[prev]
+                        end = addrs[prev] + psz
+                        if addrs[i] != end:
+                            assert end in extra and extra[end][0] == addrs[i], ('ladder: missing connector after item', prev, items[prev], hex(addrs[prev]), 'next at', hex(addrs[i]))
+                    prev = i
+            return addrs, lab, extra, br_size, bs_size, br_place, bs_place, clusters
+    raise RuntimeError('ladder: layout did not converge')
+
+
 def place(G, items, bands, required=()):
     last = None
     _fails = {}
     _s0 = int(__import__("os").environ.get("SEED0", "0"))      # probe323: a start offset so that parallel processes can search disjoint seed ranges (default 0 = unchanged)
     for seed in range(_s0, _s0 + int(__import__("os").environ.get("SEEDS", "400"))):
         try:
-            r = place_once(G, items, bands, seed, required)
+            r = (place_once_fg if os.environ.get('FILLGAPS') else place_once)(G, items, bands, seed, required)
             print('ladder: layout seed %d' % seed)
             return r
         except RuntimeError as e:
@@ -1707,6 +2116,8 @@ def apply(G, STAGE):
         G['SCAN_ADDR'] = {'SCANSYNC': _splaced[1]['SCANSYNC']}
         print('SCAN blocks placed in the AY pool: %s (%d words)' % ({k: hex(v) for k, v in G['SCAN_ADDR'].items()}, len(_snew)))
     items = build_program(G, STAGE, G.get('VARIANT', ''))
+    if G.get('TABLEX'): items = items + build_xprog(G)       # probe405: the handler complex as EXT blocks HX and ARMX
+    if G.get('VMREAD'): items = items + build_vr(G)     # probe382: the read-out blocks (VRGO .. VRSDG and the digit wrapper VRW) join the MAIN layout
     bands = ext_bands(G)
     _b0 = list(bands)
     if G.get('AYMAIN'):
@@ -1720,12 +2131,19 @@ def apply(G, STAGE):
     EVG = bool(G.get('EVGUARD'))      # probe298: the wrapper block EVG (placed ONLY in the AY pool) sits between TRIG and EVTX; the probe296 layout of every other block is untouched
     _req = []
     for _called, _name in (("EVENTS", "EVTX"), ("AUTOSTART", "EXTH")) + ((("MODETOG", "MODETOGX"),) if G.get('VARIANT') in ('u', 'v', 'P', 'W') else ()) + (((G['SPEAK'], "SPEAKX"),) if G.get('VARIANT') in ('u', 'v', 'P') and not G.get('NOSPEAKX') else ()):
+        if G.get('TABLEX') and _called == "AUTOSTART": continue          # probe405: the only call site (the handler) moved into the EXT block HX, which calls EXTH directly
+        if G.get('VMREAD') and _called == "AUTOSTART": _name = "VRW"          # probe382: HANDLER's bsr AUTOSTART goes to VRW (> 65 k words away), VRW calls EXTH
         if EVG and _called == "EVENTS": continue
         if G.get('G5DIAG') and _called == "AUTOSTART": continue          # probe300: HANDLER's bsr AUTOSTART goes to DGW (AY pool), which calls EXTH; checked in the pool placement below
         _idx = [i for i, it in enumerate(G['prog']) if it[0] == "bsr" and it[1] == _called]
         if _called == "EVENTS": _idx = [i for i in _idx if any(G['prog'][j] == ("label", "T_EV") for j in range(max(0, i - 3), i))]
         assert len(_idx) == 1, (_called, _idx)
         _req.append((G['addrs'][_idx[0]], _name))
+    if G.get('TABLEX'):
+        for _called, _name in (("GATE", "HX"), ("TRIG", "ARMX")):          # the window trampoline's bsr and MODETOG's ARM call: placeholders retargeted to the EXT blocks
+            _idx = [i for i, it in enumerate(G['prog']) if it[0] == "bsr" and it[1] == _called]
+            assert len(_idx) == 1, (_called, _idx)
+            _req.append((G['addrs'][_idx[0]], _name))
     if G.get('GEN') and G.get('GEN_FORCE'):
         G['FORCE'] = dict(G['GEN_FORCE'])          # probe380: the four blocks the old 3-word bsr operands reach (EVTX, EXTH, MODETOGX, SPEAKX) must sit more than 65 k words from their call sites: pin them to the far clusters
     try: placed = place(G, items, bands, _req)
@@ -1742,6 +2160,7 @@ def apply(G, STAGE):
         _ti = [i for i, it in enumerate(G['prog']) if it[0] == "bsr" and it[1] == "EVENTS" and any(G['prog'][j] == ("label", "T_EV") for j in range(max(0, i - 3), i))]
         assert len(_ti) == 1
         G['_PEEKF'] = lab.get('PEEKF')
+        G['_VRGO'] = lab.get('VRGO')
         evitems = build_evg(G, lab['EVTX'])
         _evreq = [(G['addrs'][_ti[0]], "EVG")]
         aybands = ext_bands_ay(G)
@@ -1809,7 +2228,9 @@ def apply(G, STAGE):
         print('  retarget bsr at %#x: %s -> %s (%#x)' % (a, called, newlabel, lab[newlabel]))
         G.setdefault('RETARGETS', {})[a] = lab[newlabel]
     retarget("T_EV", "EVENTS", "EVG" if EVG else "EVTX")
-    retarget(None, "AUTOSTART", "DGW" if G.get('G5DIAG') else "EXTH")
+    if not G.get('TABLEX'): retarget(None, "AUTOSTART", "DGW" if G.get('G5DIAG') else "VRW" if G.get('VMREAD') else "EXTH")
+    if G.get('TABLEX'):
+        retarget(None, "GATE", "HX"); retarget(None, "TRIG", "ARMX")
     if G.get('VARIANT') in ('u', 'v', 'P', 'W'): retarget(None, "MODETOG", "MODETOGX")
     if G.get('VARIANT') in ('u', 'v', 'P') and not G.get('NOSPEAKX'): retarget(None, G['SPEAK'], "SPEAKX")
     G['EXT_LABELS'] = lab
