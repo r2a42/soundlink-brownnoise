@@ -1,5 +1,7 @@
 # Clean-room reproducibility test
 
+See also `docs/payload-build.md` for rebuilding the writer (probe393) and the loop (probe428), including their noise sample.
+
 Purpose: a from-scratch rebuild of the first release's product, probe380 (the DSP-generator route, `docs/dsp-generator-route.md`), done with only this repository and publicly downloadable files, to answer "could someone other than the original author actually follow this." No device was touched; this is a build-only test.
 
 **If you just want the result and not the from-scratch rebuild**, read `build/patches/` instead (also summarized in the README's "Reproducing this yourself" section): it ships the already-computed byte-diff between the stock firmware and this image, and a small dependency-free script that applies and verifies it — no vendor toolchain needed. Everything below is the harder, from-scratch path that produced that patch in the first place.

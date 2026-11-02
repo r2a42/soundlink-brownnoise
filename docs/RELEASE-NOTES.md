@@ -1,5 +1,15 @@
 # Release notes
 
+## v0.2.3 (2026-11-02)
+
+The writer (probe393) and the loop (probe428) can now be rebuilt from source here, like the product. The three patches are byte-identical to v0.2.2.
+
+- New: the payload generator and its build driver, `build/payload/build_payload.py` (sha256 pinned after every step; regenerates the shipped 58,968-byte noise sample byte for byte), the shipped payload itself in `build/payload/g10/`, `build/payload/make_narrow_payload.py`, and `docs/payload-build.md`. One stored 47-byte constant (the loop-end tail) is the only part not generated from the seed; the page says so.
+- Fixed: `build/hook/assemble_probe320.py` in this export was an older copy that lacked the writer's Bluetooth-drop and boot-mute code, so `assemble_probe393.py` built a 593-word image instead of the shipped 957-word one. It is now the current file; the assembler output matches the shipped word list.
+- New: `docs/deep/material-2026-10-13/c-sbc/sbclib.py`, imported by the loop and product assemblers (it also needs the vendor ADK's SBC sources, as the clean-room page already says).
+- Checked from a copy of this tree: `assemble_probe393.py`, `assemble_probe427.py` and `assemble_probe428.py` write word lists identical to the shipped ones. The signed-image `--build` step was not re-run.
+- Supersedes the v0.2.2 note that the writer and loop could only be obtained from the patches.
+
 ## v0.2.2 (2026-11-02)
 
 Documentation and hygiene only; the three patches are byte-identical to v0.2.1 (`probe393` `3cc7bc92...`, `probe427` `d3de3e67...`, `probe428` `327a1bc5...`).

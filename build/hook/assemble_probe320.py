@@ -67,6 +67,15 @@ FLAG_ID = 0x14           # probe320: the once-per-boot flag: a message that re-s
 FLAG_MS = 30000
 FIRST_MS = 8000          # the first event after boot -> the write tick
 RETRY_MS = 5000          # the tick found the sink state wrong: silently try again
+DEBOUNCE_MS = int(os.environ.get('WRITER_DEBOUNCE_MS', '0'))    # probe389/390 (WRITERWAIT, default OFF = 0): every event while the tick is still pending cancels and re-sends it DEBOUNCE_MS ahead (the first event arms it with the same delay), and the sink-state guard runs BEFORE the 'already present' check, so both outcomes are spoken only after the power-on and the stock boot announcements
+FIXED_MS = int(os.environ.get('WRITER_FIXED_MS', '0'))    # probe389/390 (rebuilt 2026-10-29): the tick is armed ONCE by the first event after boot FIXED_MS ahead and later events never re-send it (a connected device streams events, which starved the debounce); default OFF = 0
+WRITERWAIT = DEBOUNCE_MS > 0 or FIXED_MS > 0
+DROPBT = os.environ.get('WRITER_DROPBT', '0') == '1'    # probe391/392 (default OFF): at the tick the cave drops the Bluetooth devices (fn_09445(1)), turns the scans off and mutes the stock prompt-enable bit (RAM only), waits until the stock is idle (sinkState < 3 and blk[24] == 0, 20 s closer), restores the bit and only THEN runs the present check / the write and speaks; the scans come back on 35 s after the drop
+ID_DG, ID_CL, ID_SC = 0x15, 0x16, 0x17    # DROPBT cave message ids: the gate poll (1 s), the 20 s closer (force), the 35 s restore (prompt bit + scans on)
+MUTEBOOT = os.environ.get('WRITER_MUTEBOOT', '0') == '1'    # probe393/394 (default OFF): from the FIRST event after boot the stock prompt-enable bit (@0x570 bit 13) is kept CLEARED in RAM on every event (so the stock speaks nothing at boot: no 'Connected to <spelled name>' that the staged payload breaks), until DBFC (after the drop and the stock-idle gate) puts it back just before the writer speaks
+ID_MB = 0x18    # MUTEBOOT cave message id: pending = the boot mute is active; every event re-sends it 60 s ahead; DBFC cancels it; if it ever expires the bit is restored (DBX)
+assert not DROPBT or WRITERWAIT
+assert not MUTEBOOT or DROPBT
 SINKSTATE = 0x59E
 
 # ---- the payload and its staging (pinned recipe; regenerated and checked at build time)
@@ -259,13 +268,25 @@ W(0xF80F)                       # leavel -8
 # AUTOARM: the flag message pending = the write tick was armed already this boot: put the flag back (30 s ahead) and nothing else. Not pending (the first event after boot): arm the write tick FIRST_MS ahead, then the flag.
 LBL("AUTOARM")
 W(0xF80B)
+if DEBOUNCE_MS > 0:
+    ca.call2(W, BSR, CANCELFIRST, al=('imm', TASK_ADDR), ah=('imm', STAGE_TW))      # a tick still pending (not yet fired): cancel it ...
+    W(CMP0); BR(BEQ, "AA_NOTICK")
+    W(*ca.imm_words(DEBOUNCE_MS, 0x10)); W(*LDI_AL(STAGE_TW))                        # ... and send it again DEBOUNCE_MS ahead; the flag message re-sends itself, it is untouched
+    BSR("RSEND")
+    BR(BRA, "AA_END")
+    LBL("AA_NOTICK")
 ca.call2(W, BSR, CANCELFIRST, al=('imm', TASK_ADDR), ah=('imm', FLAG_ID))
 W(CMP0); BR(BNE, "AA_BACK")
-W(*ca.imm_words(FIRST_MS, 0x10)); W(*LDI_AL(STAGE_TW))
+W(*ca.imm_words(DEBOUNCE_MS if DEBOUNCE_MS > 0 else (FIXED_MS if FIXED_MS > 0 else FIRST_MS), 0x10)); W(*LDI_AL(STAGE_TW))
 BSR("RSEND")
+if MUTEBOOT:
+    W(*ca.imm_words(60000, 0x10)); W(*LDI_AL(ID_MB)); BSR("RSEND")                  # the first event after boot: the boot mute starts (it is re-sent by every later event)
 LBL("AA_BACK")
+if MUTEBOOT:
+    BSR("MBEV")                                                                      # every event: while the boot mute is pending, clear the prompt bit again and re-send the mute 60 s ahead
 W(*ca.imm_words(FLAG_MS, 0x10)); W(*LDI_AL(FLAG_ID))
 BSR("RSEND")
+LBL("AA_END")
 W(0xF80F)
 
 # RSEND: AL = the MessageId, AH = the delay in ms. MessageSendLater(cave task, id, 0, delay) (the product's RSEND, probe173's form).
@@ -295,9 +316,23 @@ W(*ca.imm_words(FLAG_MS, 0x10)); W(*LDI_AL(FLAG_ID))
 BSR("RSEND")
 W(0xF80F)
 LBL("H_NF")
-W(*CMPI_AL(STAGE_TW)); BR(BEQ, "DO_TW")
-W(0xF80F)
+if DROPBT:
+    W(LD_AL_Y(4)); BSR("DBX")                           # AL = 1: go on with the guard / present check / write now (the gate passed or the closer fired); 0: handled, leave
+    W(CMP0); BR(BNE, "DO_TW")
+    W(0xF80F)
+else:
+    W(*CMPI_AL(STAGE_TW)); BR(BEQ, "DO_TW")
+    W(0xF80F)
 LBL("DO_TW")
+if WRITERWAIT:
+    W(*ca.imm_words(SINKSTATE, 0x15))                   # the guard BEFORE the present check: states 13, 3, 2, 1 (the same set as TW's), else AL = 0 (silent), AH = STAGE_TW: try again in RETRY_MS
+    W(*CMPI_AL(13)); BR(BEQ, "DO_GOK")
+    W(*CMPI_AL(3)); BR(BEQ, "DO_GOK")
+    W(*CMPI_AL(2)); BR(BEQ, "DO_GOK")
+    W(*CMPI_AL(1)); BR(BEQ, "DO_GOK")
+    W(*ca.imm_words(STAGE_TW, 0x10)); W(0x0014)
+    BR(BRA, "H_GOT")
+    LBL("DO_GOK")
 BSR("HAVEP2")                   # AL = 1 if p2 already holds the payload (its first 4 bytes): nothing is erased, the same id 0x30 is spoken, the chain ends
 W(CMP0); BR(BEQ, "DO_W")
 W(*LDI_AL(ID_PRESENT)); W(0x0010)   # ld AL,#the present id ; ld AH,#0
@@ -478,6 +513,109 @@ W(*ca.synth_stub_words(0xD3))
 
 
 
+if DROPBT:
+    cur = ext
+    I = ca.imm_words
+    # XSEND (a copy of RSEND for the EXT blocks): AL = the MessageId, AH = the delay in ms
+    BLK(); LBL("XSEND")
+    W(0xF80B); W(0x0427); W(0x0323); W(0x0014); W(0x0027); W(0x0127); W(0x0317); W(0x0227); W(0x0413)
+    W(*I(TASK_ADDR, 0x14)); BSR(MSGLATER); W(0xF80F)
+    if MUTEBOOT:
+        # MBEV: the boot mute: if the mute message is pending (cancelled here) clear the stock prompt bit again and re-send the mute 60 s ahead
+        BLK(); LBL("MBEV")
+        W(0xFE0B)
+        ca.call2(W, BSR, CANCELFIRST, al=('imm', TASK_ADDR), ah=('imm', ID_MB))
+        W(CMP0); BR(BEQ, "MB_X")
+        BSR("DBMUTE")
+        W(*I(60000, 0x10)); W(*LDI_AL(ID_MB)); BSR("XSEND")
+        LBL("MB_X")
+        W(0xFE0F)
+    # DBMUTE: clear bit 13 of @0x570 (the stock voice-prompt enable) in RAM, only when it is set (the product's SILMUTE)
+    BLK(); LBL("DBMUTE")
+    W(0xFE0B)
+    W(*I(0x570, 0x15)); W(*I(0x2000, 0xC4)); W(0x0084); BR(BEQ, "DM_X")
+    W(*I(0x570, 0x15)); W(*I(0xDFFF, 0xC4)); W(*I(0x570, 0x25))
+    LBL("DM_X")
+    W(0xFE0F)
+    # SILRST: put the bit back (or AL,#0x2000)
+    BLK(); LBL("SILRST")
+    W(0xFE0B)
+    W(*I(0x570, 0x15)); W(*I(0x2000, 0xB4)); W(*I(0x570, 0x25))
+    W(0xFE0F)
+    # DBOFF: any device connected (fn_09157) -> the stock drop-everything helper fn_09445(1); then page and inquiry scan off (the product's SCANOFF without the reminder cancel)
+    BLK(); LBL("DBOFF")
+    W(0xFE0B)
+    BSR(0x09157); W(0x0084); BR(BEQ, "DB_S")
+    W(0x0114); BSR(0x09445)
+    LBL("DB_S")
+    W(*I(0x564, 0x15)); W(*I(0x0C00, 0xC4)); W(0x0084); BR(BEQ, "DB_X")
+    BSR(0x0C80E); BSR(0x0C86D)
+    LBL("DB_X")
+    W(0xFE0F)
+    # SCANRST: sinkState below 3: page scan on, inquiry scan on (the product's SCANRST)
+    BLK(); LBL("SCANRST")
+    W(0xFE0B)
+    W(*I(SINKSTATE, 0x15)); W(*I(3, 0x84)); BR(BCC, "SR_X")
+    BSR(0x0C7F2); BSR(0x0C82A)
+    LBL("SR_X")
+    W(0xFE0F)
+    # SWGATE: AL = 1 = WAIT (sinkState >= 3, or the stock plugin owns a DSP: blk[24] != 0), else 0; read only (probe384)
+    BLK(); LBL("SWGATE")
+    W(0xFE0B)
+    W(*I(SINKSTATE, 0x15)); W(*I(3, 0x84)); BR(BCC, "SW_W")
+    W(*I(0x72B, 0x19)); W(0x1816); W(0x0084); BR(BEQ, "SW_X")
+    LBL("SW_W"); W(0x0114)
+    LBL("SW_X")
+    W(0xFE0F)
+    # DBGO: the drop sequence at the tick: mute the prompt bit, drop the devices + scans off, then the gate poll (1 s), the closer (20 s) and the restore (35 s)
+    BLK(); LBL("DBGO")
+    W(0xFE0B)
+    BSR("DBMUTE"); BSR("DBOFF")
+    W(*I(1000, 0x10)); W(*LDI_AL(ID_DG)); BSR("XSEND")
+    ca.call2(W, BSR, CANCELFIRST, al=('imm', TASK_ADDR), ah=('imm', ID_CL))
+    W(*I(20000, 0x10)); W(*LDI_AL(ID_CL)); BSR("XSEND")
+    ca.call2(W, BSR, CANCELFIRST, al=('imm', TASK_ADDR), ah=('imm', ID_SC))
+    W(*I(35000, 0x10)); W(*LDI_AL(ID_SC)); BSR("XSEND")
+    W(0xFE0F)
+    # DBFC: the gate passed or the closer fired: cancel the poll and the closer, put the prompt bit back
+    BLK(); LBL("DBFC")
+    W(0xFE0B)
+    ca.call2(W, BSR, CANCELFIRST, al=('imm', TASK_ADDR), ah=('imm', ID_DG))
+    ca.call2(W, BSR, CANCELFIRST, al=('imm', TASK_ADDR), ah=('imm', ID_CL))
+    if MUTEBOOT: ca.call2(W, BSR, CANCELFIRST, al=('imm', TASK_ADDR), ah=('imm', ID_MB))     # the boot mute ends here: later events do not clear the bit again
+    BSR("SILRST")
+    W(0xFE0F)
+    # DBX: AL = the message id. Returns AL = 1: run the guard / present check / write now; 0: nothing more to do.
+    BLK(); LBL("DBX")
+    W(0xFC0B)
+    W(0x0127)
+    W(*CMPI_AL(ID_DG)); BR(BEQ, "DBX_DG")
+    W(*CMPI_AL(ID_CL)); BR(BEQ, "DBX_FC")
+    W(*CMPI_AL(ID_SC)); BR(BEQ, "DBX_SC")
+    if MUTEBOOT: W(*CMPI_AL(ID_MB)); BR(BEQ, "DBX_SC")                             # the boot mute expired (60 s after the last event, the tick never got through): put the bit back
+    W(*CMPI_AL(STAGE_TW)); BR(BNE, "DBX_0")
+    W(*I(SINKSTATE, 0x15))                               # the tick: the same guard as the handler's (states 13, 3, 2, 1); a wrong state: the old flow, whose guard retries in RETRY_MS
+    W(*CMPI_AL(13)); BR(BEQ, "DBX_GO")
+    W(*CMPI_AL(3)); BR(BEQ, "DBX_GO")
+    W(*CMPI_AL(2)); BR(BEQ, "DBX_GO")
+    W(*CMPI_AL(1)); BR(BNE, "DBX_1")
+    LBL("DBX_GO")
+    BSR("DBGO"); BR(BRA, "DBX_0")
+    LBL("DBX_DG")
+    BSR("SWGATE"); W(CMP0); BR(BEQ, "DBX_FC")
+    W(*I(1000, 0x10)); W(*LDI_AL(ID_DG)); BSR("XSEND")
+    BR(BRA, "DBX_0")
+    LBL("DBX_FC")
+    BSR("DBFC")
+    LBL("DBX_1")
+    W(0x0114); BR(BRA, "DBX_X")
+    LBL("DBX_SC")                                       # 35 s after the drop: the prompt bit back (again) and the scans on
+    BSR("SILRST"); BSR("SCANRST")
+    LBL("DBX_0")
+    W(0x0014)
+    LBL("DBX_X")
+    W(0xFC0F)
+
 # ---- informational: estimated words per function (bsr to a stock address = 3 words, to a label = 2, br = 1)
 _cur, _sizes = None, {}
 for _it in prog:
@@ -504,7 +642,7 @@ for _seed in range(int(os.environ.get("EXTSEEDS", "300"))):
     except (RuntimeError, AssertionError) as _e:
         _FK[str(_e)[:70]] = _FK.get(str(_e)[:70], 0) + 1
         continue
-    if all(ladder_ext.bsr3_ok(_pl[1]['TW'] - (_a + 2)) for _a in range(0x3E21D, 0x3E400)):      # the window's one call into the EXT blocks (HANDLER -> TW) must encode wherever the window puts it
+    if all(ladder_ext.bsr3_ok(_pl[1][_n] - (_a + 2)) for _n in ((('TW', 'DBX', 'MBEV') if MUTEBOOT else ('TW', 'DBX')) if DROPBT else ('TW',)) for _a in range(0x3E21D, 0x3E400)):      # the window's one call into the EXT blocks (HANDLER -> TW) must encode wherever the window puts it
         _placed = _pl; print('ext layout seed %d' % _seed); break
 if _placed is None: print('failure kinds:', sorted(_FK.items(), key=lambda kv: -kv[1])[:6]); raise SystemExit('no EXT layout in EXTSEEDS seeds')
 EXT_LAB = _placed[1]
