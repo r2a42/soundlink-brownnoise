@@ -1,5 +1,7 @@
 # Messages, tasks, and where a cave's Task can live
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 > **This is an archival research document from the original (larger, private) project repository.** Some of its internal links point at files not included in this public export; where one doesn't resolve, that's why. The repository's own current, self-contained write-ups are listed in README.md's "Repository layout" section.
 
 **2026-09-30.** Established the project's own way: compile **and link** a
@@ -177,10 +179,10 @@ from.
 
 ## 7. Stub addresses this added
 
-Full table in `docs/trap-stub-table.md` (all 151), machine-readable in
+Full table in `docs/trap-stub-table.md` (not in this export) (all 151), machine-readable in
 `tools/bose-stubs.json`. All of these are below trap 0x4D, where
 BlueLab 7.3 and 7.4 agree, so they survived the naming correction in
-`docs/trap-numbering.md` unchanged — unlike the audio path.
+`docs/trap-numbering.md` (not in this export) unchanged — unlike the audio path.
 
 The ones that matter here:
 
@@ -235,7 +237,7 @@ refill probe, not an edit to an existing one.
 
 Until then, probes 111 and 113 use `MessageSinkTask(ksink, 0)`, which takes the
 registration **away from the prompt** (`fn_22f6f` leaves its own task `0xbd4e` on port 3)
-without routing anything into ours. See `docs/field-log.md`.
+without routing anything into ours. See `docs/field-log.md` (not in this export).
 
 ## The firmware's own third option: `MessageSendConditionally` on a busy flag
 

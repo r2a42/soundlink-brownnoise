@@ -1,5 +1,7 @@
 # The 0x4xxx message ids are ADK sink events, and they all have names
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 **2026-09-30.** This project has spent a long time working out what
 `0x4003`, `0x4008`, `0x4012` and friends mean, by suppressing them and
 listening to what changed. They did not need to be worked out. They are
@@ -12,14 +14,14 @@ the ADK sink application's **event enum**, and `sink_events.h` names all
 #define EVENTS_SYS_MESSAGE_BASE  (EVENTS_USR_MESSAGE_BASE + 0x0700)
 ```
 
-This follows from `docs/library-matching.md`: Bose's application is the
+This follows from `docs/library-matching.md` (not in this export): Bose's application is the
 ADK sink app, so it inherits the sink app's event numbering.
 
 **Bose uses 196 distinct values in 0x4000-0x47FF, and 184 of them have an
 ADK 4.3.1 name.** Full table with load/compare counts:
-`build/analysis/sink-events.txt`.
+`build/analysis/sink-events.txt` (not in this export).
 
-> **Not to be confused with the prompt ids.** `docs/request-id-catalog.md`
+> **Not to be confused with the prompt ids.** `docs/request-id-catalog.md` (not in this export)
 > catalogues values 0x00-0x3F, which are indices into the speaker's sound
 > corpus. These 0x4xxx values are *events* — the messages that, among many
 > other things, cause a prompt to be played. Different space, different
@@ -46,7 +48,7 @@ Bluetooth button makes the speaker enter pairing, and 0x4003 is literally
 sound, hear which button went quiet — and the ADK header agrees.
 
 It also explains the shape of the dispatcher at 0x1063F
-(`docs/centre-button-hook.md`): it emits `Answer`, `Reject`, `CancelEnd`,
+(`docs/centre-button-hook.md` (not in this export)): it emits `Answer`, `Reject`, `CancelEnd`,
 `TransferToggle` and the three-way call events, choosing among them by
 call state. That is a **call-control** dispatcher, which is why one
 physical button produces different ids in different states.

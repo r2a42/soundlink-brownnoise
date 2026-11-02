@@ -1,8 +1,10 @@
 # Stock DSP output wiring (2026-10-08, ANSWERED; offline plan item 2)
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 > **This is an archival research document from the original (larger, private) project repository.** Some of its internal links point at files not included in this public export; where one doesn't resolve, that's why. The repository's own current, self-contained write-ups are listed in README.md's "Repository layout" section.
 
-Read from `build/analysis/full-disasm.txt` and the ADK 4.4 source in `adk/root`; nothing
+Read from `build/analysis/full-disasm.txt` (not in this export) and the ADK 4.4 source in `adk/root`; nothing
 on the device.
 
 ## Answer in one paragraph
@@ -75,7 +77,7 @@ table that `@0x6d0` points at:
 - Bit 5 is set, so `fn_0b39f` adds a pair: `fn_0b2f6`: role 1 -> **output 1**, channel
   from `fn_0b2cf` = NOT bit 4 -> **B**.
 - Hardware type CODEC (3), instance 0, per the extractor chain already in
-  `docs/field-log.md` (2026-10-02).
+  `docs/field-log.md` (not in this export) (2026-10-02).
 
 So outputs 0 and 1 -> ports **5** and **6** -> DAC **A** and **B**. That agrees with the DSP
 side: sbc_decoder's output chain checks write ports `0x800011`/`0x800012`, and the ADK's

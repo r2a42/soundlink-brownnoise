@@ -1,5 +1,7 @@
 # Buffer sizing and streaming cadence for a small-buffer source into Kalimba port 3
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 > **This is an archival research document from the original (larger, private) project repository.** Some of its internal links point at files not included in this public export; where one doesn't resolve, that's why. The repository's own current, self-contained write-ups are listed in README.md's "Repository layout" section.
 
 **2026-10-04.** Task: size the buffer and pick the clock for a VM-generated audio source
@@ -102,7 +104,7 @@ Two caveats on this table, both honest:
 
 ### 2a. There is no rewind. Four independent negatives.
 
-- **No such trap exists.** `docs/trap-stub-table.md` lists all 151 stubs in this `vm.app`;
+- **No such trap exists.** `docs/trap-stub-table.md` (not in this export) lists all 151 stubs in this `vm.app`;
   `source.h` lists the whole `Source` API: `SourceSize`, `SourceSizeHeader`, `SourceMap`,
   `SourceMapHeader`, `SourceDrop`, `SourceBoundary`, `SourceIsValid`, `SourceConfigure`,
   `SourceClose`, `SourceSynchronise`. **There is no Seek, Rewind, or Reset.** *(proven)*
@@ -507,7 +509,7 @@ train superimposed on the noise.** Two mitigations, both cheap and both untested
 > `sbc_decoder.kap` clips **41.08%** with the step index railed (mean 73.5 of 88) at
 > **-1.9 dBFS**. The mechanism is structural: high-entropy binary drives IMA ADPCM's
 > adaptive step index to its ceiling, where the predictor rails. The full table is in
-> `docs/field-log.md` under "The file-source route is DEAD ON CONTENT".
+> `docs/field-log.md` (not in this export) under "The file-source route is DEAD ON CONTENT".
 >
 > So this section's advice — *"try the file source first"* — is **withdrawn**. It was
 > right that the machinery is far lighter; it was wrong that the content would serve. A
@@ -518,7 +520,7 @@ train superimposed on the noise.** Two mitigations, both cheap and both untested
 
 
 For completeness, because it dominates this design on object churn and is already written
-up: `docs/deep/prompt-audio-pump.md` establishes that `FileFind(1, 0xBD75, 27)` +
+up: `docs/deep/prompt-audio-pump.md` (not in this export) establishes that `FileFind(1, 0xBD75, 27)` +
 `StreamFileSource` over `sbc_decoder/sbc_decoder.kap` (69,994 bytes) gives **17.5 s per
 pass with no `malloc` at all** — one rebuild every 17.5 s instead of 36 per second, and no
 138-word permanent reservation. Its cost is that the content is arbitrary flash bytes,

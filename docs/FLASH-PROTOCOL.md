@@ -1,6 +1,8 @@
 # Flash protocol — mandatory, from 2026-10-04
 
-> **2026-10-28 addendum (the gates below are unchanged):** to return to official firmware use the manual sequence with `firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu` (steps: list, info -f, enter-dfu, poll 4022 by elapsed time, download --force with the 45.867 s manifest wait, leave-dfu -f, poll 40fe, info -f, write `build/hook/FLASHED` as STOCK, `tools/csr/dfu_upload.py` readback, 0 of 975,168 filesystem bytes must differ); the stock image does not touch partition 2. The lean product installs from stock with one `tools/flash_probe.py probe427`. After any console event read the 40fe node's LastArrivalDate (a reset moves it).
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
+> **2026-10-28 addendum (the gates below are unchanged):** to return to official firmware use the manual sequence with `firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu` (not in this export) (steps: list, info -f, enter-dfu, poll 4022 by elapsed time, download --force with the 45.867 s manifest wait, leave-dfu -f, poll 40fe, info -f, write `build/hook/FLASHED` as STOCK, `tools/csr/dfu_upload.py` readback, 0 of 975,168 filesystem bytes must differ); the stock image does not touch partition 2. The lean product installs from stock with one `tools/flash_probe.py probe427`. After any console event read the 40fe node's LastArrivalDate (a reset moves it).
 
 Written after a unit was lost to eleven unverified flashes (and nine presses) in one
 92-minute session. See `docs/POST-MORTEM-2026-10-04.md`. These are gates, not
@@ -165,7 +167,7 @@ not found" and `0x00` "ready to connect" are both things the speaker says by its
 ### 6. Record the result, then stop
 
 Write the outcome — negatives included — into a log file of your own (this project's own
-log, `docs/field-log.md`, is its append-only lab notebook and is not included in this
+log, `docs/field-log.md` (not in this export), is its append-only lab notebook and is not included in this
 export; start your own, e.g. a local `field-log.md` you keep for your own unit) before
 building anything else. **One flash, one press, one recorded result.** No queueing
 probes, no "while that lands". Do not commit a log that quotes your unit's own serial or
@@ -237,8 +239,8 @@ work.** Follow these in order; do not skip to the button combo.
 
 ## What you need on disk before step 3
 
-- `tools/bose-dfu/bose-dfu.exe` (obtain separately; see `NOTICE`).
-- `build/hook/probeNNN_brown.dfu` and `build/hook/probeNNN_words.json` (built in step 1).
+- `tools/bose-dfu/bose-dfu.exe` (not in this export) (obtain separately; see `NOTICE`).
+- `build/hook/probeNNN_brown.dfu` (not in this export) and `build/hook/probeNNN_words.json` (not in this export) (built in step 1).
 - The official stock firmware, if this is a recovery flash or your first flash from factory
   state (`docs/clean-room-rebuild.md` says where to get it and its expected hash).
 - `build/hook/FLASHED` (a starter copy ships in this repository; the script creates one if

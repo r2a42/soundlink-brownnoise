@@ -1,5 +1,7 @@
 # `enterl -k` reserves the top two frame slots
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 **2026-10-01.** Every cave in this project used `enterl -8` and treated all
 eight frame slots as free. Two of them are not free: they hold the saved return
 address. Writing them destroys the return path and the cave dies on `leavel`.
@@ -9,7 +11,7 @@ address. Writing them destroys the return path and the cave dies on `leavel`.
 
 This cost **seven crashes and six owner presses**, and it was misdiagnosed twice
 — first as a bad opcode in a hand-transcribed generator
-(`docs/roadmap.md` Step 2), then as an unusable `malloc` pointer (probe80).
+(`docs/roadmap.md` (not in this export) Step 2), then as an unusable `malloc` pointer (probe80).
 
 ## Proof 1: every probe's slot usage against its outcome
 
@@ -20,7 +22,7 @@ This cost **seven crashes and six owner presses**, and it was misdiagnosed twice
 
 Twenty probes. The only exception is **probe63**, which crashed for a separate
 and already-established reason: `StreamConnect` to the codec sink, which Bose's
-engine holds (`docs/bose-audio-path.md`).
+engine holds (`docs/bose-audio-path.md` (not in this export)).
 
 Regenerate with the slot census in `tools/cavesim.py`'s `hazards()`.
 
@@ -42,7 +44,7 @@ the constant pool — so they are data being decoded as instructions, not code.
 
 ## Proof 3: the compiler's own leaf functions
 
-`build/noiseprobe/noise.c` compiles to a leaf with `enterl -2` whose only local
+`build/noiseprobe/noise.c` (not in this export) compiles to a leaf with `enterl -2` whose only local
 lives at **`@(-1,Y)`** — *below* the frame — and whose third argument is read at
 `@(2,Y)`. With `k = 2` there are **no usable positive slots at all**, so the
 compiler has nowhere else to put a local. That had looked like an oddity of the

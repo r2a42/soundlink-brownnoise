@@ -1,5 +1,7 @@
 # XAP2 instruction encodings, taken from the compiler
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 **2026-09-30.** Not inferred, not guessed. The ADK assembler writes the
 same program twice — `<out>.xap` in mnemonics and `<out>.app` as linked
 words — so lining the two up names every encoding the compiler can emit.
@@ -28,7 +30,7 @@ named.** Nothing in the image decodes to an unknown opcode.
 That was not true when this file was first written — 20 opcodes and 1.47%
 of instructions were unnamed. Each turned out to be an unverified
 *addressing mode* of a family whose `@abs` form was already verified, so
-`build/opprobe/more.c` was written to make the compiler emit them: shifts
+`build/opprobe/more.c` (not in this export) was written to make the compiler emit them: shifts
 and multiplies by a local and through a pointer, `tst` on a local, `nadd`
 on a local. The rule then closed the gap rather than being assumed into
 it.

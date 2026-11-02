@@ -1,5 +1,7 @@
 Purpose: the one-page hub for HOW this project changes the speaker and learns from it: the flash protocol and every gate, the probe lifecycle with exact commands, the offline gates, press plans and spoken ids, how results are logged, the cavesim world model, and a recipe for building probe N+1 from probe N.
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 Status / last verified: 2026-10-10 (offline gate outputs quoted below were re-run on this date; nothing here touched the device; the owner is away and the speaker is NOT connected, so no flash and no USB command may be run until the owner says it is back).
 
 Read next: docs/FLASH-PROTOCOL.md (the authoritative gate text), then docs/topics/cave-and-hooks.md for the code-side limits.
@@ -16,13 +18,13 @@ Terms. A "probe" is one built DFU image carrying one cave (a small code patch) p
 
 The project learns by experiment: build one image, prove it offline, flash it, read the image back off the device, ask the owner for one press under conditions written down first, record his words, and only then build the next image. Everything in this hub exists because that loop was once run without its gates.
 
-On 2026-10-04 eleven flashes and nine presses ran in 92 minutes with zero readbacks, output sent to /dev/null, background jobs and fixed sleeps. Unit 1 then stopped enumerating on USB in any mode and was lost. About 95 earlier cycles had followed the gates and lost nothing. The gates are now written down (`docs/FLASH-PROTOCOL.md`), automated where possible (`tools/flash_probe.py`, `tools/preflight.py`, `tools/caveguard.py`), and restated as a checklist for the first day back (`docs/RETURN-CHECKLIST.md`).
+On 2026-10-04 eleven flashes and nine presses ran in 92 minutes with zero readbacks, output sent to /dev/null, background jobs and fixed sleeps. Unit 1 then stopped enumerating on USB in any mode and was lost. About 95 earlier cycles had followed the gates and lost nothing. The gates are now written down (`docs/FLASH-PROTOCOL.md`), automated where possible (`tools/flash_probe.py`, `tools/preflight.py`, `tools/caveguard.py`), and restated as a checklist for the first day back (`docs/RETURN-CHECKLIST.md` (not in this export)).
 
 Offline gates catch a bad build before a press is spent: assembler decode-verify, the cavesim control (probe90) and every path of the new probe, `--build`, preflight, caveguard, and stack headroom for a new hook site. A simulator pass proves the cave is well-formed, not that the firmware agrees: the readback proves the image, the press proves the behaviour.
 
 The flash itself is one foreground sequence with an expected line at every step (`enter-dfu`, poll for 4022, `download` with its "Waiting ... for firmware to manifest" line, `leave-dfu -f` with no errXXX, poll for 40fe, `info -f`). Then `build/hook/FLASHED` is written at once, and the readback must show 0 of 975,168 filesystem bytes differ and every cave word present. No readback means no next flash.
 
-A press plan states, before the press, what is connected, what is playing, which button and gesture, and a table of outcomes in which every path (success included) has a distinct spoken prompt id that cannot be confused with a stock prompt. The owner's words go into `docs/field-log.md` verbatim before anything else is built.
+A press plan states, before the press, what is connected, what is playing, which button and gesture, and a table of outcomes in which every path (success included) has a distinct spoken prompt id that cannot be confused with a stock prompt. The owner's words go into `docs/field-log.md` (not in this export) verbatim before anything else is built.
 
 ---
 
@@ -46,10 +48,10 @@ Paths are relative to the repo root. "Recomputed" or "ran 2026-10-10" means the 
 | The runner exists because assistant turns can be interrupted between tool calls (owner, 2026-10-08), leaving a half-done flash with nobody reading. Run it in the foreground, alone, never behind a heredoc or any other command. | proven | `tools/flash_probe.py` docstring; `docs/FLASH-PROTOCOL.md` |
 | probe178 was flash cycle 57 on unit 2 (`cycle=57 on unit 2`), flashed by `tools/flash_probe.py` with readback verified 124/124 words and 0 of 975,168 bytes differing. | proven | `build/hook/FLASHED` |
 | Recovery order (corrected 2026-10-08): (1) `bose-dfu list` (40fe = the app still runs, USB recovery is possible); (2) `bose-dfu info -f` and `python tools/csr/tap_sweep.py vr` (either answering = command layer alive); (3) `enter-dfu` will NOT work if the message loop is stuck, one attempt only; (4) POWER + VOICE-ASSISTANT ~10 s did NOT work from a wedge (it worked once, from errFIRMWARE); (5) what works: UNPLUG USB, hold POWER alone ~20 s, plug USB, press POWER; (6) a cold boot is clean, so flash stock at once and press nothing; (7) last resort: let the battery go flat; no USB at all = SPI only (no dongle owned). | proven | `docs/FLASH-PROTOCOL.md` "Recovery"; `docs/field-log.md:11717` and `:11804` |
-| `bose-dfu info -f` (not `list`) is the liveness test: `list` needs only USB descriptors and reports a wedged device as healthy. | proven | `docs/roadmap.md`; `docs/FLASH-PROTOCOL.md` |
+| `bose-dfu info -f` (not `list`) is the liveness test: `list` needs only USB descriptors and reports a wedged device as healthy. | proven | `docs/roadmap.md` (not in this export); `docs/FLASH-PROTOCOL.md` |
 | Cave-code safety rules: never call a trap on an object of unknown state (prefer read-only interrogation); never run a teardown against an object that may not exist; prove hook reachability from the BUTTON; gate on `KalimbaSendMessage(0x1072)` returning TRUE (FALSE at power-on because no DSP is loaded, so a cold boot bails silently). | proven | `docs/FLASH-PROTOCOL.md` "Safety rules for cave code" |
 | The owner holds STANDING permission to flash; the gates are what make that safe. No other permission is implied. | proven (owner statement) | memory csr8670-flash-protocol |
-| OFFLINE PERIOD from 2026-10-10: no flash and no device command (`tools/flash_probe.py`, `tools/bose-dfu/*`, `tools/csr/dfu_upload.py`, `tools/csr/tap_sweep.py`) until the owner says the speaker is back. Probes may be assembled, simulated and preflighted. | proven (standing instruction) | memory csr8670-offline-period-2026-10-10; `docs/RESUME-HERE.md` banner |
+| OFFLINE PERIOD from 2026-10-10: no flash and no device command (`tools/flash_probe.py`, `tools/bose-dfu/*`, `tools/csr/dfu_upload.py`, `tools/csr/tap_sweep.py`) until the owner says the speaker is back. Probes may be assembled, simulated and preflighted. | proven (standing instruction) | memory csr8670-offline-period-2026-10-10; `docs/RESUME-HERE.md` (not in this export) banner |
 
 ### 2b. The offline gates (ran 2026-10-10 unless noted)
 
@@ -58,8 +60,8 @@ Paths are relative to the repo root. "Recomputed" or "ran 2026-10-10" means the 
 | Control: `python tools/cavesim.py probe90` ends `ended: leavel at 0x3E31E   AL = 0x000e`. Run it EVERY time; if it drifts, nothing else means anything. | proven (ran) | `docs/RETURN-CHECKLIST.md` row 0.4; `docs/FLASH-PROTOCOL.md` step 1 |
 | `python tools/caveguard.py probe178` printed `SAFE -- every word inside the proven window or the listed, stubbed code region` and `all emitted forms are attested in Bose firmware`; the "words within 64 of a loaded pointer" lines are advisory. | proven (ran) | `tools/caveguard.py` |
 | `python tools/stackdepth.py 0xE46 --frame 8` -> `headroom at that point: 316 - 54 = **262 words**`, `a cave frame of 8 words: FITS (254 words would remain)`. | proven (ran) | `tools/stackdepth.py`; `docs/RETURN-CHECKLIST.md` row 0.17 |
-| `python tools/cavesim_regress.py` -> `169 cases: 169 identical, 0 differ, 0 missing golden`. The goldens (`build/analysis/cavesim-golden/`, 169 files) are git-ignored, so a fresh checkout reports 169 missing. | proven (ran) | `tools/cavesim_regress.py`; `docs/deep/offline-2026-10-10/README.md` F9 |
-| `python tools/cavesim_selftest.py` -> `23 cases, 0 failed` (four MOCK caves in the shape of probes 179, 180, 182 and 185b). They are not probes. | proven (ran) | `tools/cavesim_selftest.py`; `docs/deep/offline-2026-10-10/cavesim-changes.md` section 4 |
+| `python tools/cavesim_regress.py` -> `169 cases: 169 identical, 0 differ, 0 missing golden`. The goldens (`build/analysis/cavesim-golden/`, 169 files) are git-ignored, so a fresh checkout reports 169 missing. | proven (ran) | `tools/cavesim_regress.py`; `docs/deep/offline-2026-10-10/README.md` (not in this export) F9 |
+| `python tools/cavesim_selftest.py` -> `23 cases, 0 failed` (four MOCK caves in the shape of probes 179, 180, 182 and 185b). They are not probes. | proven (ran) | `tools/cavesim_selftest.py`; `docs/deep/offline-2026-10-10/cavesim-changes.md` (not in this export) section 4 |
 | `python tools/adpcm.py --selftest` passes, including a byte-exact match of the vendor `.prm` (3,400 bytes). | proven (ran) | `tools/adpcm.py` |
 | `python tools/docaudit.py` -> `46 fact checks, 0 broken references, 0 failing overall` and `device: probe178 -- PROBE`. It reads FLASHED and the docs it knows; it does NOT read `docs/deep/offline-2026-10-10/`. | proven (ran) | `tools/docaudit.py` |
 | `tools/preflight.py probeNNN` checks the built FILE: same length as the official image, `fsr_dfu1` at the same offset, every cave word at `0x6EA30 + 2a`, every redirect byte, every differing byte explained as cave, redirect or digest compensation; then runs caveguard (window, region stubs, branch-form attestation). It never touches the device and is not a readback. | proven | `tools/preflight.py` docstring |
@@ -70,7 +72,7 @@ Paths are relative to the repo root. "Recomputed" or "ran 2026-10-10" means the 
 
 | fact | confidence | source |
 |---|---|---|
-| The cave reports an outcome by SPEAKING a prompt id (it leaves the id in AL and calls the prompt engine, fn_0df7f / the `SPEAK` label). The owner reports what he heard, so the heard prompt is the result channel. | proven | `build/hook/assemble_probe179.py`; `docs/request-id-catalog.md` |
+| The cave reports an outcome by SPEAKING a prompt id (it leaves the id in AL and calls the prompt engine, fn_0df7f / the `SPEAK` label). The owner reports what he heard, so the heard prompt is the result channel. | proven | `build/hook/assemble_probe179.py`; `docs/request-id-catalog.md` (not in this export) |
 | Two id spaces: prompt ids 0x00-0x3F index the speaker's sound corpus (all 64 owner-confirmed); the 0x4xxx values are ADK sink events (`docs/sink-events.md`). Never mix them. | proven | `docs/request-id-catalog.md` banner |
 | Every path gets its own id, success included. Silence is allowed only where the build intends it (a busy press does nothing) and is then a stated row. The id table belongs to ONE probe; do not carry it to another (the same prompt means different things in different probes). | proven | `docs/FLASH-PROTOCOL.md` step 5; `docs/deep/offline-2026-10-10/README.md` F8; `docs/RETURN-CHECKLIST.md` section 2.2 |
 | No id may collide with a stock prompt used in that state: 0x09 "mobile device not found", 0x00 "ready to connect", 0x3E "bluetooth off" (also the stock Bluetooth-off prompt), and 0x21 0x22 0x24 0x25 0x1B (call prompts, ambiguous if a call application is open on the laptop). | proven | `docs/POST-MORTEM-2026-10-04.md` (probe123 reused 0x09); `docs/deep/offline-2026-10-10/README.md` F8 |
@@ -98,9 +100,9 @@ Paths are relative to the repo root. "Recomputed" or "ran 2026-10-10" means the 
 
 | fact | confidence | source |
 |---|---|---|
-| Trust order: `build/hook/FLASHED` over any prose about the speaker; `docs/RETURN-CHECKLIST.md` section 6 over `DESIGN.md` until DESIGN is edited; `verify.md` and `stack-transform.md` over the first-pass research notes and the offline README; inside one file a later dated correction over earlier text. | proven (the project's rule) | `docs/INDEX.md` section 1a |
-| Verification (V0-V11) downgraded or corrected most of the first-pass "PROVEN" labels in DESIGN. Nothing seen only in a stack-image reading is "proven on hardware" until a press. | proven | `docs/deep/offline-2026-10-10/verify.md`; `docs/RETURN-CHECKLIST.md` header |
-| A static reading of the stack image (`build/analysis/stack-disasm.txt`) found why probes 174/175 crashed: `TransformFromSink` returns the downstream node, which carries flag 0x40, and `TransformStop` on it calls `Panic(0x4030)` at 0x1d74f. Never pressed alone. The free-before-audible-end seam is defined behaviour, not a fault. | well-supported (instruction text; no press) | `docs/deep/offline-2026-10-10/stack-transform.md` verdicts; `docs/field-log.md` (last entry) |
+| Trust order: `build/hook/FLASHED` over any prose about the speaker; `docs/RETURN-CHECKLIST.md` section 6 over `DESIGN.md` until DESIGN is edited; `verify.md` and `stack-transform.md` over the first-pass research notes and the offline README; inside one file a later dated correction over earlier text. | proven (the project's rule) | `docs/INDEX.md` (not in this export) section 1a |
+| Verification (V0-V11) downgraded or corrected most of the first-pass "PROVEN" labels in DESIGN. Nothing seen only in a stack-image reading is "proven on hardware" until a press. | proven | `docs/deep/offline-2026-10-10/verify.md` (not in this export); `docs/RETURN-CHECKLIST.md` header |
+| A static reading of the stack image (`build/analysis/stack-disasm.txt` (not in this export)) found why probes 174/175 crashed: `TransformFromSink` returns the downstream node, which carries flag 0x40, and `TransformStop` on it calls `Panic(0x4030)` at 0x1d74f. Never pressed alone. The free-before-audible-end seam is defined behaviour, not a fault. | well-supported (instruction text; no press) | `docs/deep/offline-2026-10-10/stack-transform.md` (not in this export) verdicts; `docs/field-log.md` (last entry) |
 
 ---
 
@@ -117,7 +119,7 @@ Replace NNN with the probe number. All commands run from the repo root. Steps 1-
 | 3 | the control, every time | `python tools/cavesim.py probe90` | `ended: leavel at 0x3E31E   AL = 0x000e` |
 | 4 | every path of the new probe | `python tools/cavesim.py probeNNN --entry 0x3e21d --al 0x4004` (busy path, default); then `--fail TransformFromSink` (the full START); then one run per refusal (`--fail StreamKalimbaSink`, `--fail FileFind`, `--fail-after FileFind=2`, `--fail StreamFileSource`, `--fail TransformAdpcmDecode`, `--fail TransformStart`, `--fail KalimbaSendMessage`); `--dsp up` / `--dsp down`; `--teardown`; `--events N`; a non-hook event with `--al 0x4003 --once --expect replayed=1` | the line `prompt ids spoken, in order: 0xNN` gives each path's id; confirm each against the outcome table. For a loop probe add the world model: `--loop N --settle-ms MS --brief --expect chunks=N --expect violations=0` |
 | 5 | regression batteries (when cavesim or shared cave code changed) | `python tools/cavesim_regress.py`; `python tools/cavesim_selftest.py`; `python tools/adpcm.py --selftest`; for loop probes `python build/hook/gate_probeNNN.py` | `169 cases: 169 identical`; `23 cases, 0 failed`; scenario counts |
-| 6 | build the image | `python build/hook/assemble_probe<NNN>.py --build` (runs `tools/fsedit.py`, timeout 1200 s); then `sha256sum build/hook/probeNNN_brown.dfu` | no "fsedit failed". It rewrites the TRACKED scratch files `build/fsedit/probe.dfu` and `build/fsedit/x/04_fs0.bin`. The build is reproducible |
+| 6 | build the image | `python build/hook/assemble_probe<NNN>.py --build` (runs `tools/fsedit.py`, timeout 1200 s); then `sha256sum build/hook/probeNNN_brown.dfu` | no "fsedit failed". It rewrites the TRACKED scratch files `build/fsedit/probe.dfu` (not in this export) and `build/fsedit/x/04_fs0.bin` (not in this export). The build is reproducible |
 | 7 | preflight and caveguard | `python tools/preflight.py probeNNN`; `python tools/caveguard.py probeNNN` | `OK    all N cave words and 3 redirect bytes verified in the image`; `all checked probes pass pre-flight`; `SAFE`; all branch forms attested |
 | 8 | stack headroom, if the hook site is new or the frame exceeds `enterl -8` | `python tools/stackdepth.py <site> --frame N` | for 0x00E46: headroom 262, 8-word frame FITS |
 | 9 | log the build | append `# probeNNN -- built DATE: <one-line change>` to `docs/field-log.md`: the change, the press plan, the gate outputs, the sha256 | written BEFORE the flash. Write the text with the Write tool to a scratch file, then `cat >> docs/field-log.md` |
@@ -154,7 +156,7 @@ The last fatal session and the last good cycle used the SAME image (probe114). T
     bad = [k for k, v in words.items()                              # require none
            if (rb[ir+AREA0+2*int(k,16)] | rb[ir+AREA0+2*int(k,16)+1] << 8) != (v & 0xffff)]
 
-(The full script is in `docs/FLASH-PROTOCOL.md` step 4; `tools/flash_probe.py` implements it.) The 2026-10-02 cycle compared extracted files and printed 974,538 instead of 975,168; either is valid, record which. A readback of probe178 kept at `build/hook/probe178_readback.dfu` is evidence and contains the unit's private data: do not open it as text.
+(The full script is in `docs/FLASH-PROTOCOL.md` step 4; `tools/flash_probe.py` implements it.) The 2026-10-02 cycle compared extracted files and printed 974,538 instead of 975,168; either is valid, record which. A readback of probe178 kept at `build/hook/probe178_readback.dfu` (not in this export) is evidence and contains the unit's private data: do not open it as text.
 
 ### 3.4 Press plans
 
@@ -208,7 +210,7 @@ Use the newest assembler whose design you are extending (today `build/hook/assem
 7. Build (step 6), preflight and caveguard (step 7), stack headroom if the site or frame is new (step 8). Check the word count against 197 (window) and the region rule; if over, shrink the design.
 8. Log the build in the field log (step 9), including the sha256, then stop. Flashing waits for the owner and for every gate of FLASH-PROTOCOL.
 
-Things that bite: the assembler rewrites `probeM_words.json` and `probeM_cmd.txt` even without `--build`; `--build` dirties two tracked scratch files in `build/fsedit/`; a new probe is not in the regression battery until you add it; the `FIRST = 11` constant in the 179-181 assemblers (inherited from the probe141 staging code) is wrong for a staging window: `docs/deep/offline-2026-10-10/payload-184.md` says 9, and `docs/INDEX.md` section 1b lists it as a stale claim.
+Things that bite: the assembler rewrites `probeM_words.json` and `probeM_cmd.txt` even without `--build`; `--build` dirties two tracked scratch files in `build/fsedit/`; a new probe is not in the regression battery until you add it; the `FIRST = 11` constant in the 179-181 assemblers (inherited from the probe141 staging code) is wrong for a staging window: `docs/deep/offline-2026-10-10/payload-184.md` (not in this export) says 9, and `docs/INDEX.md` section 1b lists it as a stale claim.
 
 ### 3.9 Why the protocol is shaped this way (the three lessons)
 
@@ -224,7 +226,7 @@ Things that bite: the assembler rewrites `probeM_words.json` and `probeM_cmd.txt
 |---|---|---|
 | `preflight.py` closes the gap between the emulator and the readback. | It checks the built file only. | `docs/POST-MORTEM-2026-10-04.md`; `docs/FLASH-PROTOCOL.md` |
 | The readback tool does not exist. | `tools/csr/dfu_upload.py` has been in-tree since 2026-10-04; it was looked for at a guessed path. | `docs/FLASH-PROTOCOL.md` step 4 |
-| The POWER + VOICE-ASSISTANT combo recovers a wedge. | It did not on 2026-10-08; unplug USB and hold POWER ~20 s. `docs/RUN-SHEET.md` still carries the old text. | `docs/FLASH-PROTOCOL.md` "Recovery" |
+| The POWER + VOICE-ASSISTANT combo recovers a wedge. | It did not on 2026-10-08; unplug USB and hold POWER ~20 s. `docs/RUN-SHEET.md` (not in this export) still carries the old text. | `docs/FLASH-PROTOCOL.md` "Recovery" |
 | `bose-dfu list` showing 40fe means the device is fine. | It needs only USB descriptors. Use `info -f`. | `docs/roadmap.md` |
 | The window of 262 words is available. | 197. probe130 crashed. | `docs/cave-budget.md`; `docs/topics/cave-and-hooks.md` |
 | The port-3 chunk lasts about 7 s. | About 219 s (219,528 bytes at 2000 Hz); every 7 s was the pairing teardown. Compute durations from file size x rate. | memory csr8670-port3-chunk-rules; `docs/field-log.md` probe173 |
@@ -234,9 +236,9 @@ Things that bite: the assembler rewrites `probeM_words.json` and `probeM_cmd.txt
 | The gap between chunks is about 1 s. | It is `ceil(D/POLL) x POLL - D`: 378 ms and 514 ms in the model, anywhere in 0..POLL_MS in general. | `docs/deep/offline-2026-10-10/cavesim-changes.md` section 6 |
 | A free-before-audible-end read is a fault (the probe173 pattern); require two consecutive free reads. | It is defined behaviour; the mitigation is dropped. | `docs/deep/offline-2026-10-10/stack-transform.md` section 9; `docs/RETURN-CHECKLIST.md` section 6 |
 | A pass of `docaudit` means the docs are consistent. | It does not read `docs/deep/offline-2026-10-10/`. | `docs/deep/offline-2026-10-10/README.md` section 0 |
-| `docs/probe-test-sheet.md` is the current test protocol. | Only its catalog-sweep protocol is valid; the tests A-C and the press log are blank templates. | `docs/request-id-catalog.md` holds the finished catalog |
+| `docs/probe-test-sheet.md` (not in this export) is the current test protocol. | Only its catalog-sweep protocol is valid; the tests A-C and the press log are blank templates. | `docs/request-id-catalog.md` holds the finished catalog |
 | `docs/RUN-SHEET.md` is the flash procedure. | It is a 2026-10-04 button-session page; its probe117-119 steps are history and its bose-dfu forms predate the `-f` rule. | `docs/FLASH-PROTOCOL.md` |
-| `docs/NEXT-UNIT-CHECKLIST.md` is a live to-do list. | It was written on 2026-10-04 for the replacement speaker, which is now unit 2 and in service. Its rule that the first flash on a new unit is stock, read back and diffed, still stands for any further unit. | `docs/POST-MORTEM-2026-10-04.md` "Hard gates" |
+| `docs/NEXT-UNIT-CHECKLIST.md` (not in this export) is a live to-do list. | It was written on 2026-10-04 for the replacement speaker, which is now unit 2 and in service. Its rule that the first flash on a new unit is stock, read back and diffed, still stands for any further unit. | `docs/POST-MORTEM-2026-10-04.md` "Hard gates" |
 
 | HidDfuCmd can back up the device. | It fails at 0% ("Device reports DFU length of zero"); readback uses `dfu_upload.py`. | `docs/FLASH-PROTOCOL.md` step 4 |
 
@@ -268,7 +270,7 @@ If you want to build a probe: `build/hook/assemble_probe179.py` (newest template
 
 If you want the simulator: `tools/cavesim.py -h`, `docs/deep/offline-2026-10-10/cavesim-changes.md`, `tools/cavesim_world.py`, `tools/cavesim_regress.py`, `tools/cavesim_selftest.py`, `build/hook/gate_probe180.py`.
 
-If you want what an id means: `docs/request-id-catalog.md` (the 64 prompt ids; note D11 below), `docs/sink-events.md` (the 0x4xxx events), `docs/deep/offline-2026-10-10/promptmap.md` (what survives a data_us staging).
+If you want what an id means: `docs/request-id-catalog.md` (the 64 prompt ids; note D11 below), `docs/sink-events.md` (the 0x4xxx events), `docs/deep/offline-2026-10-10/promptmap.md` (not in this export) (what survives a data_us staging).
 
 If you want the record of any probe: `docs/field-log.md` (search `# probeNNN`), `probeNNN_flash.log` in build/hook/ (the flash transcript), `build/hook/FLASHED` (the current state), `docs/RESUME-HERE.md` lines 1-40 (the banner).
 
@@ -278,17 +280,17 @@ If you want recovery after a bad press: `docs/FLASH-PROTOCOL.md` "Recovery", `do
 
 Known inconsistency to remember: `docs/request-id-catalog.md` says all 64 ids are owner-confirmed speech yet lists 0x02 0x03 0x05 0x07 0x0f 0x1a 0x1d as "(empty)". Re-listen only if an id from that set matters.
 
-See also (strategy review 2026-10-12, offline, a recommendation; read the skeptic section of each note first): `docs/deep/strategy-2026-10-12/STRATEGY.md` section 4 (a proposed reordering of the probe sequence and a product build, not adopted) and section 8 (offline tasks J-T1 to J-T13), and `docs/deep/strategy-2026-10-12/02-loop-forever.md` (the loop lifecycle audit that the 179-181 press pages test).
+See also (strategy review 2026-10-12, offline, a recommendation; read the skeptic section of each note first): `docs/deep/strategy-2026-10-12/STRATEGY.md` (not in this export) section 4 (a proposed reordering of the probe sequence and a product build, not adopted) and section 8 (offline tasks J-T1 to J-T13), and `docs/deep/strategy-2026-10-12/02-loop-forever.md` (not in this export) (the loop lifecycle audit that the 179-181 press pages test).
 
-See also (firmware study 2026-10-12, offline, static or model results; read the skeptic section of each note first; index `docs/deep/firmware-study-2026-10-12/README.md`, functions `docs/FUNCTION-CATALOG.md`): `T03-cavesim-and-seam-model.md` (the new world flags and `tools/seammodel.py`), `T06c-volume-census-probe.md` (the read-only census image probe187), `T11-product-build-and-press-pages.md` (press pages and outcome tables for 181p, 184a, 184; the gate-5 conflict for loop images is owner decision T11-N1) and `T08-184a-184-assemblers.md` (nine outcome ids, one per class).
+See also (firmware study 2026-10-12, offline, static or model results; read the skeptic section of each note first; index `docs/deep/firmware-study-2026-10-12/README.md` (not in this export), functions `docs/FUNCTION-CATALOG.md` (not in this export)): `T03-cavesim-and-seam-model.md` (the new world flags and `tools/seammodel.py`), `T06c-volume-census-probe.md` (the read-only census image probe187), `T11-product-build-and-press-pages.md` (press pages and outcome tables for 181p, 184a, 184; the gate-5 conflict for loop images is owner decision T11-N1) and `T08-184a-184-assemblers.md` (nine outcome ids, one per class).
 
 ## See also (round 3, 2026-10-12)
 
-Added at the end so that no cited line moved. Round 3 is offline and static or model work; nothing was run on the speaker. Index and corrections register: `docs/deep/round3-2026-10-12/README.md`; the facts are in `docs/FACTS.md` section 10.
+Added at the end so that no cited line moved. Round 3 is offline and static or model work; nothing was run on the speaker. Index and corrections register: `docs/deep/round3-2026-10-12/README.md` (not in this export); the facts are in `docs/FACTS.md` section 10.
 
-- `docs/deep/round3-2026-10-12/PLAN-v2.md`: the revised flash sequence, gates and the 32 owner decisions (a recommendation).
-- `docs/deep/round3-2026-10-12/V04-verify-187-181p-pb-spec.md`: press-page defects found by an independent verifier; gate 5/6 conflict for loop images (owner decision PD-02).
-- `docs/deep/round3-2026-10-12/T14-tool-owner-round3.md`: tool changes and their regression evidence; `docs/PROBE-CATALOG.md` section 12 lists every image built in round 3 with its verifier status (builder gate only unless stated).
+- `docs/deep/round3-2026-10-12/PLAN-v2.md` (not in this export): the revised flash sequence, gates and the 32 owner decisions (a recommendation).
+- `docs/deep/round3-2026-10-12/V04-verify-187-181p-pb-spec.md` (not in this export): press-page defects found by an independent verifier; gate 5/6 conflict for loop images (owner decision PD-02).
+- `docs/deep/round3-2026-10-12/T14-tool-owner-round3.md` (not in this export): tool changes and their regression evidence; `docs/PROBE-CATALOG.md` section 12 lists every image built in round 3 with its verifier status (builder gate only unless stated).
 
 ## See also (2026-10-28)
 

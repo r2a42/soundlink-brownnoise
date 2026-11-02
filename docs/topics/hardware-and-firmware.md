@@ -1,4 +1,6 @@
 Purpose: one-page orientation on the CSR8670 / Bose SoundLink Micro hardware and
+
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
 firmware, with routes into every doc that has detail, so a new agent does not have to
 read docs/field-log.md to understand the device.
 
@@ -132,7 +134,7 @@ csr8670-offline-period-2026-10-10).
   probes (e.g. a call landed on `StreamScoSink` instead of `StreamAudioSink`). Source:
   docs/trap-numbering.md; memory csr8670-toolchain-status.md.
 - **The arg-calling convention was recorded backwards once.**
-  `docs/vm-trap-calling-convention.md` states AH-first and calls itself "settled"; it
+  `docs/vm-trap-calling-convention.md` (not in this export) states AH-first and calls itself "settled"; it
   was compiled with `-S` only, missing `-mal-first`, and is explicitly retracted in
   favor of docs/trap-abi.md's AL-first convention (compiled-and-linked proof).
 - **"Loading/wiring a DSP from the cave wedges the device" was too broad.** A one-call-
@@ -215,15 +217,15 @@ csr8670-offline-period-2026-10-10).
 | docs/deep/offline-2026-10-10/verify.md | which claims were downgraded/corrected by adversarial review (V0-V11) | checking whether a claim still stands |
 | memory notes (csr8670-*.md, see MEMORY.md index) | owner's standing constraints and hard-won lessons, outside docs/ | always, alongside this file |
 
-See also (firmware study 2026-10-12, offline, static or model results; read the skeptic section of each note first; index `docs/deep/firmware-study-2026-10-12/README.md`, functions `docs/FUNCTION-CATALOG.md`): `docs/FUNCTION-CATALOG.md` (every function the notes identified, by image and address), `T05-auto-power-off.md` (0x4707 is never armed and cannot power off; 0x4737 is the encryption refresh: F190-F194), `T01-pipe-trap-0x100.md` (the stack trap table and the 18 stream classes: F157-F165) and `docs/FACTS.md` section 9.
+See also (firmware study 2026-10-12, offline, static or model results; read the skeptic section of each note first; index `docs/deep/firmware-study-2026-10-12/README.md` (not in this export), functions `docs/FUNCTION-CATALOG.md` (not in this export)): `docs/FUNCTION-CATALOG.md` (every function the notes identified, by image and address), `T05-auto-power-off.md` (0x4707 is never armed and cannot power off; 0x4737 is the encryption refresh: F190-F194), `T01-pipe-trap-0x100.md` (the stack trap table and the 18 stream classes: F157-F165) and `docs/FACTS.md` section 9.
 
 ## See also (round 3, 2026-10-12)
 
-Added at the end so that no cited line moved. Round 3 is offline and static or model work; nothing was run on the speaker. Index and corrections register: `docs/deep/round3-2026-10-12/README.md`; the facts are in `docs/FACTS.md` section 10.
+Added at the end so that no cited line moved. Round 3 is offline and static or model work; nothing was run on the speaker. Index and corrections register: `docs/deep/round3-2026-10-12/README.md` (not in this export); the facts are in `docs/FACTS.md` section 10.
 
 - `docs/FUNCTION-CATALOG.md`: sections 1b, 2b, 3b-3d, 5c and 6 add the round-3 rows (boot mode, PS key 0x39, raw source, MMU buffers, DSP volume chain, TTS and soundClear, sinkState).
-- `docs/deep/round3-2026-10-12/R03-stack-version-and-lead-L.md`: the stack image is the same bytes in every stock release; the sbc_decoder flash records 1-3 are data (F244, F247).
-- `docs/deep/round3-2026-10-12/R02-raw-source-0xd3-and-trap-catalogue.md`: `python tools/trapcat.py --checks` re-derives the trap catalogue (227 slots, 20 forms, 18 stream classes).
+- `docs/deep/round3-2026-10-12/R03-stack-version-and-lead-L.md` (not in this export): the stack image is the same bytes in every stock release; the sbc_decoder flash records 1-3 are data (F244, F247).
+- `docs/deep/round3-2026-10-12/R02-raw-source-0xd3-and-trap-catalogue.md` (not in this export): `python tools/trapcat.py --checks` re-derives the trap catalogue (227 slots, 20 forms, 18 stream classes).
 
 ## See also (2026-10-28)
 

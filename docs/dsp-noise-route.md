@@ -1,5 +1,7 @@
 # The brown-noise DSP app already exists. The blocker is delivery.
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 > **2026-10-28 banner:** the conclusion below that DSP code can only be delivered by a runtime partition write is superseded. The DSP's program memory is writable at run time through its PM window (DM 0x020000/0x030000 + PM address after DM[0xFE65] := 1), which needs no filesystem edit and no partition write; a DSP-side noise generator runs on the speaker (probe380). See `docs/dsp-generator-route.md` and FACTS F316-F321. The statements about the signed filesystem (a `.kap` cannot be authored through the blind windows) remain true.
 
 > ## UPDATE, 2026-10-08: DELIVERY IS SOLVED. LIFETIME IS THE BLOCKER, AND IT IS THE DSP.
@@ -16,7 +18,7 @@
 > **What stops it is the DSP, not the data.** probe157 measured
 > `KalimbaSendMessage(0x1072)` returning FALSE ~7 s after the press: `sbc_decoder` is gone,
 > because the press enters pairing and `fn_0d500` (called at `0x00ac2`, before the hook) tears
-> A2DP down. See `docs/deep/hook-gates.md`.
+> A2DP down. See `docs/deep/hook-gates.md` (not in this export).
 >
 > **The direct port write is parked.** probe152's census found `SinkSlack` on port 3 reports no
 > usable room, and Bose never claims, maps or flushes an audio sink anywhere in this firmware.
@@ -39,7 +41,7 @@ integrator (leak 1/512, input 1/64), a one-pole high-pass near 119 Hz, both clam
 ±0.5, producing 256-sample blocks into two cbuffers feeding DAC ports 0 and 1 on a
 1.5 ms timer.
 
-Built: `fw/build/csr8670/brown_noise_kalimba.kap` — **2,047 records = 4,094 bytes of
+Built: `fw/build/csr8670/brown_noise_kalimba.kap` (not in this export) — **2,047 records = 4,094 bytes of
 payload.**
 
 Verified in `kalsim_csr8670.exe` (`fw/csr8670/README.md`):
@@ -77,7 +79,7 @@ the single port.
 > Bose's binary adds **+4**, not the ADK's +8, so the tone shift is **7** (word b
 > bit 1 clear) or **4** (set) -- both BELOW the unity 16->24-bit alignment of 8.
 > There is no +18 dB boost and nothing saturates; passing word b = 0 is simply the
-> louder of the two by 18 dB. See `docs/kalimba-disasm.md`.
+> louder of the two by 18 dB. See `docs/kalimba-disasm.md` (not in this export).
 
 `0x1072`'s word a is **plain Hz, not Hz/10** (unlike `0x1070`/`0x1071`, which divide by
 `DSP_RESAMPLING_RATE_COEFFICIENT`), and bit 1 of word b selects a **+18 dB** tone shift
@@ -183,7 +185,7 @@ from a version string.
 
 ## Round-3 amendment (2026-10-12, curator)
 
-Appended at the end so that line numbers cited elsewhere stay valid. Corrections from `docs/deep/round3-2026-10-12/` that concern this file; full register: `docs/deep/round3-2026-10-12/README.md` section 4. Grades follow the verifier sections of the round-3 notes. Nothing above this heading was edited except a pointer on the status or banner line.
+Appended at the end so that line numbers cited elsewhere stay valid. Corrections from `docs/deep/round3-2026-10-12/` that concern this file; full register: `docs/deep/round3-2026-10-12/README.md` (not in this export) section 4. Grades follow the verifier sections of the round-3 notes. Nothing above this heading was edited except a pointer on the status or banner line.
 
 - **R3-C034** (R03). Claim: T02 follow-up 3 / E31 and N02:27: sbc_decoder has no EQ or biquad; flash records 1-3 may be code. Correction: Flash records 1-3 are DATA (record 1 = 292 bit-packed 24-bit defaults, record 2 = 110 values in 21 groups [-g,0,+g,a1,a2], record 3 = packed 24-bit tables). "No EQ code kernel found" stands; "no biquad" must be softened: biquad-shaped coefficient data exist (window 2, DM2 0xff3786/0xff3790) with the consumer unlocated.
 - **R3-C065** (N02). Claim: docs/kalimba-disasm.md:106-109: no hidden noise generator; the ADK $math.rand fingerprint (-4508331) appears in none of the images. Correction: The fingerprint is ADK-4.4 specific. Three PRNG families exist: sbc_decoder dither LCG (13653, +17), NowSpeakTTS noise excitation (-6408327, +13), soundClear 48-bit vector LCG. None is an audible generator reachable by message (well-supported, static only).

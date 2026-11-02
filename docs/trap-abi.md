@@ -1,12 +1,14 @@
 # VM trap ABI — verified by compiler, not inference
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 > **CORRECTION, 2026-09-30 (later): every stub ADDRESS in this file's
 > table below is wrong.** The names were taken from BlueLab 7.4's trap
 > table; the speaker's image is BlueLab 7.3, and 173 traps are numbered
 > differently. The argument conventions in this file are unaffected —
 > they came from compiling and linking, not from the name table. Use
-> `docs/trap-stub-table.md` / `tools/bose-stubs.json` for addresses and
-> read `docs/trap-numbering.md` for what this invalidates.
+> `docs/trap-stub-table.md` (not in this export) / `tools/bose-stubs.json` for addresses and
+> read `docs/trap-numbering.md` (not in this export) for what this invalidates.
 
 > **Continued in `docs/message-task-abi.md`** (2026-09-30, a second probe
 > app): the same method extended to four arguments, to *incoming* arguments

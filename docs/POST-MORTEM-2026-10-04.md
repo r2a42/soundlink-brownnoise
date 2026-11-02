@@ -1,7 +1,9 @@
 # Post-mortem: the unit lost on 2026-10-04
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 **Outcome.** After **eleven flashes and nine presses in 92 minutes** — ten custom images
-plus one stock baseline, itemised with timestamps in `docs/field-log.md` under "The
+plus one stock baseline, itemised with timestamps in `docs/field-log.md` (not in this export) under "The
 2026-10-04 flash session" — the speaker stopped enumerating USB in any mode.
 
 > **Count corrected 2026-10-04** from the session transcript. This document originally said
@@ -75,7 +77,7 @@ Why it was omitted, in order of culpability:
    flashes ran as background jobs with `download` piped to `/dev/null`, checking only an
    overall exit code. `docs/field-log.md:3063` says, in these words: *"only `leave-dfu`
    reports the status. Check it before reassuring anyone."* I had copied that warning into
-   `docs/RUN-SHEET.md` hours earlier.
+   `docs/RUN-SHEET.md` (not in this export) hours earlier.
 
 ## Contributing faults, each avoidable
 
@@ -86,7 +88,7 @@ Why it was omitted, in order of culpability:
 | **Stack headroom not re-measured** | probe127 hooked `0x18a04`, three frames deep (`fn_00846` `enterl -23` → `fn_189fb` `enterl -8` → cave `enterl -16`) plus the generator and six trap calls. | *"Never raise a cave's frame without measuring stack headroom."* `tools/stackdepth.py` exists for it. I reused a 262-word figure measured at `0xAE0` weeks earlier. |
 | **Hooks chosen on local reading** | Three hooks in a row picked without proving reachability from the button: `0xAE0` (gates 2/3 undocumented, and structurally one-shot), `0x107be` (sinkState-gated), `0x10823` (mode-2 only — `fn_1061b` dispatches on `@(8,Y)`). | The project had already lost presses to the `0x4003` gate at `0x00ace`. |
 | **Ambiguous diagnostics** | probe125 was silent on success, so "nothing at all" could not distinguish a dead hook from an inaudible 79 ms burst. probe123 reused `0x09`, which is also a stock prompt. | The field log already recorded probes being misread for exactly this reason. |
-| **Results not recorded** | The press results for probes 114, 121, 122, 125 and 126 were **never written into the field log**, and were recovered from the session transcript only afterwards. The log is the project's spine; `docs/RESUME-HERE.md` tells a fresh session it needs nothing else. | *"Record the result, including negatives, before building anything else"* — reconstructed as step 5 of the prior loop, below. I kept this step well for ~95 cycles and dropped it in this session. |
+| **Results not recorded** | The press results for probes 114, 121, 122, 125 and 126 were **never written into the field log**, and were recovered from the session transcript only afterwards. The log is the project's spine; `docs/RESUME-HERE.md` (not in this export) tells a fresh session it needs nothing else. | *"Record the result, including negatives, before building anything else"* — reconstructed as step 5 of the prior loop, below. I kept this step well for ~95 cycles and dropped it in this session. |
 | **Wrong gesture tested** | probe118's documented trigger was a *volume* press; the owner was asked for a pairing long-press. Its negative still stands for `0x10823` (the cave gated on the whole `EventUsr` family), but the test the probe was built for was never run. | One flash, one press, one **stated** condition. |
 | **Pace** | **Eleven flashes, nine presses, 92 minutes.** Six images went out in the 67 minutes after probe77 proved the control still worked. | — |
 
@@ -128,7 +130,7 @@ Non-negotiable, in `docs/FLASH-PROTOCOL.md`:
 
 ## Prepared in advance for the replacement unit
 
-See `docs/NEXT-UNIT-CHECKLIST.md`. The short version: capture a full stock readback and the
+See `docs/NEXT-UNIT-CHECKLIST.md` (not in this export). The short version: capture a full stock readback and the
 PS keys before the first custom flash, confirm `dfu_upload.py` round-trips, and re-measure
 stack headroom per hook site. The analysis work from 2026-10-04 stands and is worth a lot:
 the button-event table, the `sinkState` gate, the hook-gate trace, the buffer-cadence

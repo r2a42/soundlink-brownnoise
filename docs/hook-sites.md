@@ -1,5 +1,7 @@
 # Hook sites: the whole image, disassembled, and a better place to stand
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 **2026-10-02.** Written after probes 103-108 were built on a hook site nobody had
 read. `tools/disasm.py` now decodes the entire image in one pass.
 
@@ -11,12 +13,12 @@ read. `tools/disasm.py` now decodes the entire image in one pass.
 
 | artifact | contents |
 |---|---|
-| `build/analysis/full-disasm.txt` | 11.7 MB: **191,358 instructions over all 236,514 code words**, grouped into **5,676 functions**, every branch/call target resolved, **151 trap stubs named from the BlueLab 7.3 table** |
-| `build/analysis/xref.json` | callers per function; readers and writers per global (**329** globals) |
-| `build/analysis/hook-sites.txt` | **8,282 redirectable call/branch sites** |
+| `build/analysis/full-disasm.txt` (not in this export) | 11.7 MB: **191,358 instructions over all 236,514 code words**, grouped into **5,676 functions**, every branch/call target resolved, **151 trap stubs named from the BlueLab 7.3 table** |
+| `build/analysis/xref.json` (not in this export) | callers per function; readers and writers per global (**329** globals) |
+| `build/analysis/hook-sites.txt` (not in this export) | **8,282 redirectable call/branch sites** |
 
 The 7.4 trap names in `build/analysis/functions/*.lst` are wrong
-(`docs/trap-numbering.md`); this supersedes them.
+(`docs/trap-numbering.md` (not in this export)); this supersedes them.
 
 **A site is "redirectable" when every operand byte of the instruction falls inside a
 DFU blind window**, so its target can be rewritten without disturbing a byte the RSA

@@ -1,5 +1,7 @@
 # The VM heap is ten fixed pools, and the largest is 642 words
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 > ## CORRECTION, 2026-10-08: THIS DOCUMENT IS SOUND, AND IT WAS APPLIED TO THE WRONG PROBLEM
 >
 > Everything below about the pools is still accurate. **But the pool arithmetic here was used
@@ -28,7 +30,7 @@ two firmwares crashed from a leak this explains.
 
 ## The pools
 
-`PSKEY_PMALLOC_APP` (0x215F) in `firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu`
+`PSKEY_PMALLOC_APP` (0x215F) in `firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu` (not in this export)
 defines the VM app pools as *(element size in words x count)*:
 
     4x27   16x68   32x13   46x4   94x2   100x3   100x1   138x1   318x1   642x1

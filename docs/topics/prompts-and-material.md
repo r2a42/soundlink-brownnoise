@@ -1,5 +1,7 @@
 Purpose: one hub for everything about the speaker's voice-prompt system and about WHERE brown-noise material can come from (files, ADPCM, loop seams, rate, partition 2), with routes to the detailed notes.
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 StreamFileSource streams only narrow files (flags 0x00): data_us and rphrases_us. See FACTS F112.
 
 Status / last verified: 2026-10-10. Checked today on this machine: `tools/csr/dumpfs.py` on the official 3.0.3 image (file flags), `tools/adpcm.py --selftest`, `tools/brownnoise.py --selftest`, `tools/promptmap.py --selftest` (44 checks), the stream.h quote. Nothing in this file was pressed on the speaker today; the speaker has probe178 and is not connected.
@@ -42,9 +44,9 @@ The goal is loud, sustained brown noise on the speaker by software only, played 
 
 | fact | confidence | source |
 |---|---|---|
-| There are 64 request ids, 0x00-0x3F, all identified by the owner by ear (probe38 sweep, anchored by "english" = 0x16 and "ready to connect another device" = 0x35, 31 presses apart, consistent). | proven | `docs/request-id-catalog.md`; `docs/field-log.md:1125` |
-| 57 ids speak; 7 are empty stubs (0x02 0x03 0x05 0x07 0x0f 0x1a 0x1d). No id is a tone, chime or drone, so nothing sustained exists in the id space. | proven (ear + stub match) | `docs/deep/offline-2026-10-10/promptmap.md` section 1.3; catalog "What this tells us" |
-| The 0x00-0x3F prompt ids are a different space from the 0x4xxx sink events, and from the 0x3e9-0x3f2 request-API phrase family. | proven (catalog note) / well-supported (3e9 family) | catalog header; `docs/sink-events.md`; `docs/bose-firmware-anatomy.md` section 18 |
+| There are 64 request ids, 0x00-0x3F, all identified by the owner by ear (probe38 sweep, anchored by "english" = 0x16 and "ready to connect another device" = 0x35, 31 presses apart, consistent). | proven | `docs/request-id-catalog.md` (not in this export); `docs/field-log.md:1125` (not in this export) |
+| 57 ids speak; 7 are empty stubs (0x02 0x03 0x05 0x07 0x0f 0x1a 0x1d). No id is a tone, chime or drone, so nothing sustained exists in the id space. | proven (ear + stub match) | `docs/deep/offline-2026-10-10/promptmap.md` (not in this export) section 1.3; catalog "What this tells us" |
+| The 0x00-0x3F prompt ids are a different space from the 0x4xxx sink events, and from the 0x3e9-0x3f2 request-API phrase family. | proven (catalog note) / well-supported (3e9 family) | catalog header; `docs/sink-events.md`; `docs/bose-firmware-anatomy.md` (not in this export) section 18 |
 | Request id N reads `rphrases_us` table entry N+1. The lookup is in code (`fn_1ee80`, 0x1ee80); the 7 empty ids land exactly on the 7 stub entries. | proven (lookup, 7 matches); well-supported (all ids) | promptmap.md section 1.3 |
 | Two catalog ids do not follow N+1: 0x0b (long stereo-pairing sentence = entry 65) and 0x11 (chain of entries 18 + 54). | hypothesis | promptmap.md section 1.4 |
 | `rphrases_us` is the NowSpeakTTS phoneme script: word 0 = 147 entries, then per-phrase payloads (unit bytes 1..43, 0xff = word break, prosody bytes). It is NOT an (offset, length) directory into `data_us`. | proven | promptmap.md section 1; `python tools/promptmap.py --selftest` (44 checks, re-run today) |
@@ -58,20 +60,20 @@ The goal is loud, sustained brown noise on the speaker by software only, played 
 | fact | confidence | source |
 |---|---|---|
 | Internal fs (3.0.3) has 7 live files: `vm.app`, `NowSpeakTTS/data_us`, `NowSpeakTTS/NowSpeakTTS.kap`, `sbc_decoder/sbc_decoder.kap`, `soundClearNb/soundClearNb.kap`, `soundClearWb/soundClearWb.kap`, `tts/rphrases_us`. | proven (dumpfs re-run today) | `python tools/csr/dumpfs.py firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu OUTDIR` |
-| Flags: `data_us` 0x00 and `rphrases_us` 0x00 (narrow). Every `.kap` and `vm.app` is 0x40 (code). | proven (dumpfs output today) | same; `docs/deep/offline-2026-10-10/material-slots.md` section 0 |
+| Flags: `data_us` 0x00 and `rphrases_us` 0x00 (narrow). Every `.kap` and `vm.app` is 0x40 (code). | proven (dumpfs output today) | same; `docs/deep/offline-2026-10-10/material-slots.md` (not in this export) section 0 |
 | `StreamFileSource` returns 0 for any file that is not narrow, so exactly two files can be a stream payload. | proven (header quote) | `adk/root/tools/include/firmware/stream.h:312-318` |
 | The file directory matters: `FileFind(dir "NowSpeakTTS", "data_us")` and `FileFind(dir "tts", "rphrases_us")`. probe176 used the wrong directory and got FILE_NONE (0x1B). | proven (press) | `docs/field-log.md:13244` |
-| No inter-file slack exists; files are adjacent. | proven | `docs/content-control-analysis.md` section 2 |
+| No inter-file slack exists; files are adjacent. | proven | `docs/content-control-analysis.md` (not in this export) section 2 |
 | The external fs (`ext_flash.bin`, own signature) holds `ext_version` (11 bytes) and 12 language packs `data_XX` / `rphrases_XX` (bp fr ge it jp kr mc ms nl po ru sv; largest `data_ru` 255,390 bytes). Flags are reported 0x00. | proven (names, sizes: file listing); flags well-supported | `firmware/bose/extracted/ext_fs/` (names and sizes); material-slots.md section 2(A) |
-| The language packs are NOT on the speaker now: the partition-2 erase of probes 140/141 removed them, and a stock reflash leaves p2 alone. What p2 holds now is unknown. | well-supported | material-slots.md section 2(A); `docs/RETURN-CHECKLIST.md` section 4.3 |
+| The language packs are NOT on the speaker now: the partition-2 erase of probes 140/141 removed them, and a stock reflash leaves p2 alone. What p2 holds now is unknown. | well-supported | material-slots.md section 2(A); `docs/RETURN-CHECKLIST.md` (not in this export) section 4.3 |
 
 ### 2.3 ADPCM and tools
 
 | fact | confidence | source |
 |---|---|---|
-| The ADK encoder dialect is CWI/audioop IMA ADPCM: 4 bits per sample, no header, no framing, no length field, state starts (0,0), first sample in the HIGH nibble, standard 89-entry step table. | proven (tool side) | `docs/deep/offline-2026-10-10/adpcm-format.md` sections 1-3, 10 |
+| The ADK encoder dialect is CWI/audioop IMA ADPCM: 4 bits per sample, no header, no framing, no length field, state starts (0,0), first sample in the HIGH nibble, standard 89-entry step table. | proven (tool side) | `docs/deep/offline-2026-10-10/adpcm-format.md` (not in this export) sections 1-3, 10 |
 | `tools/adpcm.py` reproduces the ADK `voice_prompt_tool.exe` byte for byte on test signals (2,000/2,000; 3,000/3,000; 5,001-sample odd case) and 16 vendor `.prm` files (33,504/33,504 bytes on the 8 with a matching WAV). The textbook quantiser agrees on only 65 % of bytes: the dialect is the CWI coder. | proven | adpcm-format.md section 10; `python tools/adpcm.py --selftest` (OK today) |
-| The device's own decoder (stack image, function at stack word 0x59cec) reads the high nibble first and uses the standard step/index tables; its state is two words in the transform node. | proven (instruction text, static) | `docs/deep/offline-2026-10-10/stack-transform.md` section 3 |
+| The device's own decoder (stack image, function at stack word 0x59cec) reads the high nibble first and uses the standard step/index tables; its state is two words in the transform node. | proven (instruction text, static) | `docs/deep/offline-2026-10-10/stack-transform.md` (not in this export) section 3 |
 | A new transform starts from predictor 0, index 0 (node zero-filled; fill count not traced); nothing carries between chunks. | well-supported (start value); proven (no carry) | stack-transform.md section 3; REVIEW-part2.md X6 |
 | `TransformAdpcmDecode` yields 2 samples per byte, 4 words of output per input byte. | well-supported (rate by ear and probe128's 126 ms); proven (word counts, static) | stack-transform.md section 3; `docs/field-log.md:7833`; verify.md V5 |
 | `tools/brownnoise.py` makes loopable brown-noise payloads (leaky integrator, high-pass, equal-power crossfade, zero-crossing rotation, peak, encode from (0,0), decoded WAV preview). `--selftest` OK today (brown round-trip SNR 23.0 dB). | proven (offline tool) | `tools/brownnoise.py`; adpcm-format.md sections 4, 11 |
@@ -94,7 +96,7 @@ The goal is loud, sustained brown noise on the speaker by software only, played 
 | An all-zero stock region would be a sample-and-hold and would work roughly, but no zero-filled narrow region exists. | measured (zeros case); negative well-supported | adpcm-format.md section 6 point 2; DESIGN.md section 8 item 19 |
 | The dead-code region (0x2331e..0x235a9, 207 writable words + 14 stubs) is code, not data-addressable, so it cannot be a `StreamRegionSource` payload. The const pool is data-addressable but offers only about 197 chosen bytes (about 0.05 s). | proven (address map); proven by arithmetic | `docs/message-task-abi.md` section 4; material-slots.md section 2(B); verify.md V2 |
 | `.kap` files and `vm.app` are flags 0x40: not streamable, so sacrificing them gains nothing. | proven | material-slots.md section 2(A) |
-| `SourceMap` on a file source returns one byte per 16-bit data word; `SourceSize` is uint16, so a >64 KB file is read through a window advanced by `SourceDrop`. | proven (decode of `fn_1ee3d`; header) | `docs/deep/prompt-audio-pump.md` section 3; DESIGN.md section 8 item 13 |
+| `SourceMap` on a file source returns one byte per 16-bit data word; `SourceSize` is uint16, so a >64 KB file is read through a window advanced by `SourceDrop`. | proven (decode of `fn_1ee3d`; header) | `docs/deep/prompt-audio-pump.md` (not in this export) section 3; DESIGN.md section 8 item 13 |
 
 ### 2.6 Partition 2
 
@@ -106,7 +108,7 @@ The goal is loud, sustained brown noise on the speaker by software only, played 
 | The write is dense (no 29/64 cap), because the cave gathers the staged bytes from a file and flushes them contiguously. | well-supported (design); not established by any press | material-slots.md section 2(C); verify.md V11 point 1 |
 | `StreamPartitionOverwriteSink` erases the whole target partition on open and, if misaligned, neighbouring sectors. A misaligned erase reaching a loader-adjacent sector is the one unbounded failure. Two clean erases are on record (Bose's updater, probe140). | proven (header); risk not excluded by measurement | `docs/partition-route.md` "What makes it unsafe today" and "Recovery" |
 | `PartitionMountFilesystem(1,2,LOWER)` returned FALSE twice (probes 143, 144) and an unmounted `FileFind` found nothing. Cause open: (a) probe141's content was garbage, (b) a RAW_SERIAL partition refuses a filesystem mount. | proven (observation); cause open | verify.md V11; payload-184.md sections 0, 4 |
-| probe141's staged gather started at data_us word 11 but the staging was at word 9, so its p2 content was ROFS words 2..13 plus 2 stock words per period: never a valid ROFS. This removes "the gather read what was staged" from the evidence of 143/144. | proven (arithmetic on the committed DFU); hardware effect hypothesis | `docs/deep/offline-2026-10-10/payload-184.md` section 0 |
+| probe141's staged gather started at data_us word 11 but the staging was at word 9, so its p2 content was ROFS words 2..13 plus 2 stock words per period: never a valid ROFS. This removes "the gather read what was staged" from the evidence of 143/144. | proven (arithmetic on the committed DFU); hardware effect hypothesis | `docs/deep/offline-2026-10-10/payload-184.md` (not in this export) section 0 |
 | No VM code mounts p2: both `PartitionMountFilesystem` call sites (0x0a340, 0x1193f) use partition 0. There is no direct evidence that p2 content ever reaches the union filesystem. | proven (call sites); premise of probe185a unsupported | verify.md V11 "FALSE mount" and corollary |
 | p2 cannot be read back by any known channel. | well-supported | `docs/partition-route.md` STATUS block |
 
@@ -118,7 +120,7 @@ The goal is loud, sustained brown noise on the speaker by software only, played 
 | `TransformStop` on the downstream node returns `Panic(0x4030)`: the best reading of the probe174/175 crash cause. Rule stays: no Stop/Disconnect in a loop image. | Panic decode proven (static); as the crash cause well-supported, not yet pressed | stack-transform.md section 8 |
 | Seam test, reset case (fresh transform per chunk): seam step 2..183 against p99 sample steps of 1,939..4,684 for the six slot-sized payloads. Inaudible in principle; not heard. | measured (offline model) | adpcm-format.md section 11 |
 | First chunk after we start pressing played at about 7-8 kHz (3 s for 2.62 s predicted); the next at our 2 kHz (about 12 s for 10.49 s predicted). n = 2 first presses, n = 1 second press, by ear. | observed | `docs/field-log.md:13315`; verify.md V5 |
-| `0x1072` word a = rate in Hz, applied at once to the tone rate and copy-timer; word b bit 1 selects cbops shift 4 instead of 7: b = 2 is 18 dB quieter. Honoured on the very first and second chunk (probe178 "Quieter on Both"). | proven (decode + ear) | DESIGN.md section 8 item 5; `docs/field-log.md:13394`; `docs/kalimba-disasm.md` |
+| `0x1072` word a = rate in Hz, applied at once to the tone rate and copy-timer; word b bit 1 selects cbops shift 4 instead of 7: b = 2 is 18 dB quieter. Honoured on the very first and second chunk (probe178 "Quieter on Both"). | proven (decode + ear) | DESIGN.md section 8 item 5; `docs/field-log.md:13394`; `docs/kalimba-disasm.md` (not in this export) |
 | Loudness did not track the volume buttons or music volume in one hedged ear report. | hypothesis | verify.md V4 |
 
 ---
@@ -148,7 +150,7 @@ The goal is loud, sustained brown noise on the speaker by software only, played 
 
 The tree directories matter: the flat `firmware/bose/extracted/internal_fs/` folder hides them; `python tools/csrdfu.py extract` or `tools/csr/dumpfs.py` shows the tree. Names are matched by `FileFind(dir, name, len)`; leading and trailing separators are ignored (header `file.h`); whether the compare is case sensitive is unknown (payload-184.md section 2).
 
-A cave carries a file name as a string in its code: the blind bands are 14, 9 and 3 words wide, so a path like `NowSpeakTTS/data_us` (20 words) is split into two `FileFind` calls, and short names come from copies already in the firmware const pool (`docs/deep/stock-helpers.md`; material-slots.md section 2).
+A cave carries a file name as a string in its code: the blind bands are 14, 9 and 3 words wide, so a path like `NowSpeakTTS/data_us` (20 words) is split into two `FileFind` calls, and short names come from copies already in the firmware const pool (`docs/deep/stock-helpers.md` (not in this export); material-slots.md section 2).
 
 ### 3.3 data_us and rphrases_us in one paragraph each
 
@@ -158,7 +160,7 @@ A cave carries a file name as a string in its code: the blind bands are 14, 9 an
 
 ### 3.4 Spoken ids as probe outcome channels
 
-The technique ("make the bails speak", `docs/bose-audio-path.md` section 7): a cave ends every branch by speaking a different catalog id, so one press reports which branch ran. FLASH-PROTOCOL step 5 requires a distinct id for every path including success, and no id that collides with a stock prompt in that state.
+The technique ("make the bails speak", `docs/bose-audio-path.md` (not in this export) section 7): a cave ends every branch by speaking a different catalog id, so one press reports which branch ran. FLASH-PROTOCOL step 5 requires a distinct id for every path including success, and no id that collides with a stock prompt in that state.
 
 How it has been used:
 
@@ -170,13 +172,13 @@ How it has been used:
 | 143, 144 | battery 30 % (state report; sinkState = 2 in 143), then 0x12 "voice prompts on" = mount FALSE | `docs/partition-route.md` lines 573 and 597; verify.md V11 |
 | 174-178 | failure ids 0x3E (no DSP / gate FALSE), 0x10 (no sink), 0x22 (directory), 0x1B (file), 0x24 (source), 0x25 (transform); success speaks NOTHING | SPEAK would collide with our own transform on port 3 (probe155 header; assemble_probe178.py:288) |
 | 179-181 (built, not flashed) | 0x26 "ended" success, 0x21 gate FALSE, plus the failure set | RETURN-CHECKLIST section 2.2 (its own table) |
-| 182-185 (specs only) | 0x27 + class battery ids; 0x1B / 0x2A / 0x2B / 0x13 | each probe carries its OWN table (`docs/deep/offline-2026-10-10/REVIEW-part2.md` section 5) |
+| 182-185 (specs only) | 0x27 + class battery ids; 0x1B / 0x2A / 0x2B / 0x13 | each probe carries its OWN table (`docs/deep/offline-2026-10-10/REVIEW-part2.md` (not in this export) section 5) |
 
 **Collisions and ambiguities.** Every press page must carry its own id table; never reuse a table from another probe.
 
 - Stock prompts the speaker says by itself: 0x09 "mobile device not found" and 0x00 "ready to connect" (FLASH-PROTOCOL step 5); the power-on battery announcement (0x27-0x30, observed); 0x31 "battery low" and 0x32 "battery full" on battery events; "english" 0x16 on the language gesture (promptmap.md section 6).
 - 0x3E "bluetooth off" is also the stock's own Bluetooth-off prompt; probe177 heard an unexplained beep after it.
-- The call family 0x21, 0x22, 0x24, 0x25, 0x1B is ambiguous if an HFP call (Teams on the laptop) is active during a press (`docs/deep/offline-2026-10-10/README.md`, F8).
+- The call family 0x21, 0x22, 0x24, 0x25, 0x1B is ambiguous if an HFP call (Teams on the laptop) is active during a press (`docs/deep/offline-2026-10-10/README.md` (not in this export), F8).
 - Battery-family ids mean different things in probes 182, 183 and 184, and 0x2A/0x2B mean "battery 40/50 %" in 182 but "found" in 185. 0x21 means "failure" in 179 press A and "expected" in press B.
 - Two sound-alike pairs: 0x08 and 0x0d are both "disconnected", 0x19 and 0x1c are both "call from". Never use both in one plan.
 - 0x25 merges two causes (decode refused, start refused) in probes 178-181: a lost bit, not a collision (REVIEW-part2.md O7).
@@ -210,7 +212,7 @@ Format: see the first row group of section 2.3. In practice a payload is a flat 
 | `build/noise/` | slot-sized payloads (10,486 / 65,242 / 219,528 bytes) at both rates, `*_at8000.wav` previews, `il_*` | same |
 | `build/payload/narrow184/` | the exact probe184 payload and image (30,000-byte `brown_8000_30000.bin` = 7.50 s, `narrow_fs.bin` 30,268 bytes) | see payload-184.md |
 | `build/pcm/` | earlier raw-PCM brown payloads (legacy PCM-injection route) | legacy |
-| `build/payload/make_payload.py`, `stage_payload.py` | LEGACY probe141 builders; staging window is 2 words off (use 9..22, not 11..24) | do not use |
+| `build/payload/make_payload.py` (not in this export), `stage_payload.py` | LEGACY probe141 builders; staging window is 2 words off (use 9..22, not 11..24) | do not use |
 
 Previews are the decoder's output BEFORE the DSP tone path, shift, resampler and mix: screening, not judgement. The owner's ear decides (RETURN-CHECKLIST section 6.1 lists the files to listen to first).
 
@@ -247,7 +249,7 @@ Plan (DESIGN.md section 3, amended by RETURN-CHECKLIST sections 4.3 and 6):
 
 1. Probe182: read-only census of the file-source window (does `SourceSize` limit the map, does `SourceDrop` advance it, SourceMap word packing).
 2. Probe183: read-only p2 census (`IS_MOUNTED`, `STATE`, `SECTOR_SIZE`, plus `SIZE`); mandatory per verify.md V11 and decision D10 (recommended, unanswered).
-3. Probe184: the ONE p2 write. Payload `build/payload/narrow184/narrow_fs.bin` (30,268 bytes: `/brown.adpcm` flags 0x00 + the official 11-byte `/ext_version`), staged into `data_us` words 9..22 of each 32-word period (1,081 periods = 23 x 47, data_us bytes 0..69,184 = 31.5 %), gathered by the cave and flushed 28 bytes at a time.
+3. Probe184: the ONE p2 write. Payload `build/payload/narrow184/narrow_fs.bin` (not in this export) (30,268 bytes: `/brown.adpcm` flags 0x00 + the official 11-byte `/ext_version`), staged into `data_us` words 9..22 of each 32-word period (1,081 periods = 23 x 47, data_us bytes 0..69,184 = 31.5 %), gathered by the cave and flushed 28 bytes at a time.
 4. Probe185a: the loop pointed at `FileFind(1, "brown.adpcm", 11)` from the root, no mount; 185b adds `PartitionMountFilesystem(1,2,1)` on FILE_NONE. If it still fails and the cause is the RAW_SERIAL type, software is blocked (curator-config or SPI map edit, which the owner has ruled out): stop and say so.
 
 Risks, named:
@@ -298,7 +300,7 @@ Do not carry these forward. The right column wins.
 | The as-is corpus has a "rising, bright" spectrum | design-mvp.md | withdrawn | falls about 3.5 dB per octave, 36-62 % railed; harshness is clipping (verify.md V10) |
 | "PROVEN: dense p2 commit", "self-authored fs boot-tolerated", "the ext partition IS mounted" | material-slots.md rank 1; `docs/partition-route.md` banner and STATUS; field-log "What the day proved" | retracted | only 16 bytes proven; leftover bytes were tolerated, not a valid fs; no VM code mounts p2 (verify.md V11) |
 | The 2026-10-06 mount FALSE is garbage from the gather | design-risk.md 3.2 | one of two live causes | type refusal (ADK `upgrade_fw_if.c:193-200`) is equally live |
-| Staging window words 11..24 | `build/payload/stage_payload.py`, probe141, `tools/cavesim.py --staged`, probes 179-181 assemblers | wrong by 2 words | words 9..22, FIRST = 9 (payload-184.md section 0) |
+| Staging window words 11..24 | `build/payload/stage_payload.py` (not in this export), probe141, `tools/cavesim.py --staged`, probes 179-181 assemblers | wrong by 2 words | words 9..22, FIRST = 9 (payload-184.md section 0) |
 | The nibble order is the one free parameter if the first p2 chunk roars | adpcm-format.md section 7, DESIGN.md | outdated | proven high nibble first on the device (stack-transform.md section 3); a roar would point at content or the write |
 | The first chunk is slow because of a "resampler cache" | dsp-keepalive-rate.md B2 | struck | cause unknown; rate sites re-read live (verify.md V5) |
 | Interleaving our bytes in the blind windows could carry noise | early route-D notes | closed | measured roar (adpcm-format.md sections 6, 9) |
@@ -330,36 +332,36 @@ Do not carry these forward. The right column wins.
 | How the request API and the audio engine are wired | `docs/bose-firmware-anatomy.md` sections 3, 9, 18 (check the banners) |
 | What actually speaks, the dead stock prompt plugin, the file-source idiom | `docs/deep/prompt-audio-pump.md` |
 | Which file can be a stream payload; the candidate survey and ranking | `docs/deep/offline-2026-10-10/material-slots.md` (read with verify.md V2, V10, V11) |
-| The 29-of-64 blind window and what it rules out | `docs/content-control-analysis.md` section 1; `docs/deep/offline-2026-10-10/write-constraint.md`; `tools/fsedit.py` |
+| The 29-of-64 blind window and what it rules out | `docs/content-control-analysis.md` section 1; `docs/deep/offline-2026-10-10/write-constraint.md` (not in this export); `tools/fsedit.py` |
 | ADPCM format, encoder proof, brown-noise numbers, seam test, interleave study | `docs/deep/offline-2026-10-10/adpcm-format.md` |
 | The device's own decoder and transform lifecycle; why chunk ends read "free" early; why 174/175 crashed | `docs/deep/offline-2026-10-10/stack-transform.md` |
-| Detecting the end of a chunk; the poll design | `docs/deep/offline-2026-10-10/chunk-end.md` |
-| Keeping the DSP up; the rate latch (banner: parts stale) | `docs/deep/offline-2026-10-10/dsp-keepalive-rate.md` |
-| Level control, stop and volume buttons | `docs/deep/offline-2026-10-10/controls.md`; `docs/kalimba-disasm.md`; `docs/gain.md` |
+| Detecting the end of a chunk; the poll design | `docs/deep/offline-2026-10-10/chunk-end.md` (not in this export) |
+| Keeping the DSP up; the rate latch (banner: parts stale) | `docs/deep/offline-2026-10-10/dsp-keepalive-rate.md` (not in this export) |
+| Level control, stop and volume buttons | `docs/deep/offline-2026-10-10/controls.md` (not in this export); `docs/kalimba-disasm.md`; `docs/gain.md` (not in this export) |
 | The partition route in full, including the failed 2026-10-06 campaign | `docs/partition-route.md` (read its STATUS block with verify.md V11) |
 | The probe184 payload and staging numbers | `docs/deep/offline-2026-10-10/payload-184.md`; `build/payload/make_narrow_payload.py` |
-| The judged plan and the downgraded claims | `docs/deep/offline-2026-10-10/DESIGN.md` (sections 3, 8); `docs/deep/offline-2026-10-10/verify.md`; `docs/deep/offline-2026-10-10/README.md` (findings F1-F14) |
+| The judged plan and the downgraded claims | `docs/deep/offline-2026-10-10/DESIGN.md` (not in this export) (sections 3, 8); `docs/deep/offline-2026-10-10/verify.md` (not in this export); `docs/deep/offline-2026-10-10/README.md` (findings F1-F14) |
 | The order of presses and flashes on return; owner decisions D0-D13 | `docs/RETURN-CHECKLIST.md` |
 | Flash safety, readback, recovery | `docs/FLASH-PROTOCOL.md` |
 | Why only 29 of 64 bytes are writable (the signature scheme) | `docs/topics/dfu-and-signing.md`; `docs/dfu-signature-scheme.md` |
 | Audit of the offline plan (spoken-id audit, stale-doc list, open review items) | `docs/deep/offline-2026-10-10/REVIEW-part2.md` |
 | Device, cave, hooks, DSP background | `docs/topics/hardware-and-firmware.md` |
 | History of material attempts (probe104 region source, 105/106 refill, 128-134 generated noise, 141 staged write, 155 data_us, 173-178) | `docs/field-log.md:5546`, `:7833`, `:11457`, `:11535`, `:13002`, `:13112`, `:13315`, `:13394` |
-| Trap stubs used on this route (FileFind, StreamFileSource, TransformAdpcmDecode, partition traps) | `docs/trap-stub-table.md` |
-| String and const-pool tricks for file names | `docs/deep/stock-helpers.md`; `docs/const-strings.md` |
+| Trap stubs used on this route (FileFind, StreamFileSource, TransformAdpcmDecode, partition traps) | `docs/trap-stub-table.md` (not in this export) |
+| String and const-pool tricks for file names | `docs/deep/stock-helpers.md`; `docs/const-strings.md` (not in this export) |
 
-See also (strategy review 2026-10-12, offline, a recommendation; read the skeptic section of each note first): `docs/deep/strategy-2026-10-12/01-rich-material.md` (what 4-bit ADPCM does to a 1/f^2 spectrum, level headroom, rate and length; payload levels `docs/FACTS.md` F150 and F151) and `docs/deep/strategy-2026-10-12/06-red-team.md` (alternatives to the partition-2 file route, with `docs/deep/strategy-2026-10-12/STRATEGY.md` J-C1, J-C2 and J-C19).
+See also (strategy review 2026-10-12, offline, a recommendation; read the skeptic section of each note first): `docs/deep/strategy-2026-10-12/01-rich-material.md` (not in this export) (what 4-bit ADPCM does to a 1/f^2 spectrum, level headroom, rate and length; payload levels `docs/FACTS.md` F150 and F151) and `docs/deep/strategy-2026-10-12/06-red-team.md` (not in this export) (alternatives to the partition-2 file route, with `docs/deep/strategy-2026-10-12/STRATEGY.md` (not in this export) J-C1, J-C2 and J-C19).
 
-See also (firmware study 2026-10-12, offline, static or model results; read the skeptic section of each note first; index `docs/deep/firmware-study-2026-10-12/README.md`, functions `docs/FUNCTION-CATALOG.md`): `T07-payload-study.md` (the integrator payload is +2.4 dB hot in the top octave; `tools/brownnoise.py --gen fft`; recommended file 60,100 B, seed 63, peak 0.985; previews in `build/payload/previews/`: `docs/FACTS.md` F202-F206) and `T08-184a-184-assemblers.md` (tail start 1,270 keeps all 57 speech ids in the model: F209).
+See also (firmware study 2026-10-12, offline, static or model results; read the skeptic section of each note first; index `docs/deep/firmware-study-2026-10-12/README.md` (not in this export), functions `docs/FUNCTION-CATALOG.md` (not in this export)): `T07-payload-study.md` (the integrator payload is +2.4 dB hot in the top octave; `tools/brownnoise.py --gen fft`; recommended file 60,100 B, seed 63, peak 0.985; previews in `build/payload/previews/`: `docs/FACTS.md` F202-F206) and `T08-184a-184-assemblers.md` (tail start 1,270 keeps all 57 speech ids in the model: F209).
 
 ## See also (round 3, 2026-10-12)
 
-Added at the end so that no cited line moved. Round 3 is offline and static or model work; nothing was run on the speaker. Index and corrections register: `docs/deep/round3-2026-10-12/README.md`; the facts are in `docs/FACTS.md` section 10.
+Added at the end so that no cited line moved. Round 3 is offline and static or model work; nothing was run on the speaker. Index and corrections register: `docs/deep/round3-2026-10-12/README.md` (not in this export); the facts are in `docs/FACTS.md` section 10.
 
-- `docs/deep/round3-2026-10-12/N01-inplace-hybrid-adpcm-stream.md`: streaming data_us in place with a hybrid ADPCM stream is dead for goals 1-3; the one 0.5 s pocket (F267-F270).
-- `docs/deep/round3-2026-10-12/B02-payload-staging-final-size.md`: payload staging at the final size; the 58,700 B variant that spares the speech structures; header exposure (F292-F294).
-- `docs/deep/round3-2026-10-12/V02-verify-payload.md`: independent decode of the 60,100 B payload (F295; not a flash clearance).
-- `docs/deep/round3-2026-10-12/N02-dsp-noise-sources-and-shapers.md`: the rphrases_us blind geometry and the TTS synth chain (F273, F274); data_us is the NowSpeakTTS voice database (F279).
+- `docs/deep/round3-2026-10-12/N01-inplace-hybrid-adpcm-stream.md` (not in this export): streaming data_us in place with a hybrid ADPCM stream is dead for goals 1-3; the one 0.5 s pocket (F267-F270).
+- `docs/deep/round3-2026-10-12/B02-payload-staging-final-size.md` (not in this export): payload staging at the final size; the 58,700 B variant that spares the speech structures; header exposure (F292-F294).
+- `docs/deep/round3-2026-10-12/V02-verify-payload.md` (not in this export): independent decode of the 60,100 B payload (F295; not a flash clearance).
+- `docs/deep/round3-2026-10-12/N02-dsp-noise-sources-and-shapers.md` (not in this export): the rphrases_us blind geometry and the TTS synth chain (F273, F274); data_us is the NowSpeakTTS voice database (F279).
 
 ## See also (2026-10-28)
 

@@ -1,5 +1,7 @@
 # How much cave space there is
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 **2026-09-30.** Measured, because probe58 turned out to be using most of
 it and the next design needs to know.
 
@@ -85,7 +87,7 @@ Four more zero runs sit outside the scanned window:
 
 ## The reserve: 1,318 words in unreferenced debug strings
 
-The constant pool holds 729 printable strings (`docs/const-strings.md`).
+The constant pool holds 729 printable strings (`docs/const-strings.md` (not in this export)).
 Cross-referencing every immediate load in the code against them:
 
 - **449 strings are loaded by at least one instruction.**
@@ -115,7 +117,7 @@ window, (2) widening the window for 65 more, (3) the string reserve.
 
 - **Contiguous space.** Nowhere in the filesystem can 64 consecutive bytes
   be written; the longest writable run is 29 bytes followed by 35
-  untouchable (`docs/content-control-analysis.md` §1). This is why a
+  untouchable (`docs/content-control-analysis.md` (not in this export) §1). This is why a
   `.kap` cannot be installed and why PCM cannot be flashed as data.
 - **RAM at build time.** Globals are Bose's. The cave gets RAM only by
   calling `malloc` at run time (stub 0x026, which Bose uses with sizes up

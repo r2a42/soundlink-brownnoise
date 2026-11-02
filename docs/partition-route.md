@@ -1,12 +1,14 @@
 # The runtime partition write: not closed, not safe yet, and one probe decides it
 
+> **Note on references (public export):** this file cites files from the original private research repository that are not included here; each such path is marked "(not in this export)" at its first mention, and all of them are listed in `docs/NOT-IN-EXPORT.md`. The claims they support are summarised in the text; the cited originals are not needed to rebuild or flash anything.
+
 > **This is an archival research document from the original (larger, private) project repository.** Some of its internal links point at files not included in this public export; where one doesn't resolve, that's why. The repository's own current, self-contained write-ups are listed in README.md's "Repository layout" section.
 
-> **2026-10-28 banner:** the partition-2 route (staged data_us bytes written to p2 by a writer image) delivered the recorded noise from probe318 to probe367 and is now RETIRED for the product (probe380 generates the noise in the DSP). Partition 2 factory content is the 12 language packs (FACTS F325); `docs/deep/material-2026-10-27/CV-restore-language-packs.md` studies restoring them. The run-time partition write itself (`StreamPartitionOverwriteSink`) is proven by probe140 and by the writers; the findings may be useful to other projects.
+> **2026-10-28 banner:** the partition-2 route (staged data_us bytes written to p2 by a writer image) delivered the recorded noise from probe318 to probe367 and is now RETIRED for the product (probe380 generates the noise in the DSP). Partition 2 factory content is the 12 language packs (FACTS F325); `docs/deep/material-2026-10-27/CV-restore-language-packs.md` (not in this export) studies restoring them. The run-time partition write itself (`StreamPartitionOverwriteSink`) is proven by probe140 and by the writers; the findings may be useful to other projects.
 
 **2026-10-02.** This is the only route to **clean, infinite, refill-free brown noise with
 no paired device** — write our own DSP app to flash at runtime and `KalimbaLoad` it. We
-already have the app: `fw/build/csr8670/brown_noise_kalimba.kap`, 4,094 bytes,
+already have the app: `fw/build/csr8670/brown_noise_kalimba.kap` (not in this export), 4,094 bytes,
 kalsim-verified at −5.9 dB/octave, never clips.
 
 It is also the only route in this project whose failure mode is worse than a recoverable
@@ -43,7 +45,7 @@ takes its partition number *from the incoming DFU header* (`0x18809`) with one h
 The paragraph above is superseded in one respect. "Nothing has ever read this device's
 live flash layout" still stands — no `PartitionGetInfo` has ever run. But the claim that
 **partition 0 is the only partition the firmware touches is wrong**, and the evidence was
-sitting in `build/analysis/full-disasm.txt` the whole time.
+sitting in `build/analysis/full-disasm.txt` (not in this export) the whole time.
 
 `fn_187e7` (called from `0x186b1`) takes an **image-type code** as its argument and maps it
 to a partition number before writing:
@@ -76,7 +78,7 @@ more than the retracted three-partition table ever had.
 
 ## The external filesystem is real, parses with our tools, and IS mounted
 
-`firmware/bose/index.xml` lists a second image for device `0x4022` that this project had
+`firmware/bose/index.xml` (not in this export) lists a second image for device `0x4022` that this project had
 only ever treated as dissection material:
 
 ```
@@ -94,7 +96,7 @@ Measured 2026-10-06:
   (`NowSpeakTTS/data_fr`, `tts/rphrases_ru`, …) plus an 11-byte `ext_version`. Nothing in it
   is needed to boot, and nothing in it is needed to work in English.
 - **`vm.app` references its contents.** Searching the one-char-per-16-bit-word encoding
-  (`docs/const-strings.md`) finds `ext_version` at `0x78a56`, plus `NowSpeakTTS`, `tts/`,
+  (`docs/const-strings.md` (not in this export)) finds `ext_version` at `0x78a56`, plus `NowSpeakTTS`, `tts/`,
   `data_` and `rphrases`. The app reads this filesystem, so **the ext partition is mounted
   into the union filesystem.**
 
@@ -339,7 +341,7 @@ with host-side-only tooling (no DFU, no write, no update endpoint called):
   `finally`. Restarted the updater and called `startUpdaterSession` — the call that
   pulls lookup + index.
 
-**Result (`build/extfs/capture/transcript.json`): every updater fetch is HTTPS.**
+**Result (`build/extfs/capture/transcript.json` (not in this export)): every updater fetch is HTTPS.**
 `worldwide.bose.com:443` and `bose-downloads.s3.amazonaws.com:443` via CONNECT —
 hosts visible, paths and bodies not. No plain HTTP anywhere.
 
@@ -399,7 +401,7 @@ TYPE = RAW_SERIAL** — the first hardware reading of the live partition map. TY
 property of the SQIF map, not the content, so the ext fs living in a RAW_SERIAL partition is
 consistent; the overwrite-p2 plan stands on a hardware-confirmed target.
 
-`build/hook/probe140_brown.dfu` (sha256 `4bebac28…`, 155 cave words in
+`build/hook/probe140_brown.dfu` (not in this export) (sha256 `4bebac28…`, 155 cave words in
 `0x3E21D..0x3E3A2`, redirects identical to 137/139) is the second gate:
 
 1. GetInfo(p2, STATE) — control
@@ -471,7 +473,7 @@ before KalimbaLoad-ing self-authored code.
 
 ## The payload is BUILT — brown_fs.bin (2026-10-06), verified offline
 
-`build/payload/make_payload.py` → **`brown_fs.bin`, 33,014 bytes / 16,507 sink words**:
+`build/payload/make_payload.py` (not in this export) → **`brown_fs.bin`, 33,014 bytes / 16,507 sink words**:
 a minimal ROFS built through csrfspack's own builder (format fidelity inherited, roundtrip
 byte-identical) with a fresh 3-entry tree: root + `/ext_version` (the original 11-byte
 version file, so `v2`/`la` queries stay sane) + **`/brown.kap` (32,752 B, flags 0x40 =
@@ -513,7 +515,7 @@ reflash does not fix (SPI territory). The play probe itself never needs a boot.
 
 ## probe141, 2026-10-06: the staged write is BUILT — not flashed, awaiting owner go-ahead
 
-`build/hook/probe141_brown.dfu` (sha256 `39fd5dd9…`, 180 cave words in
+`build/hook/probe141_brown.dfu` (not in this export) (sha256 `39fd5dd9…`, 180 cave words in
 `0x3E21D..0x3E3DF`, redirects identical to 137/139/140's) writes the REAL payload:
 FileFind(`NowSpeakTTS/data_us`) → StreamFileSource → SourceMap → open the overwrite
 sink(1,2) → 1,180 periods of {fn_12e1a claim 14 words → memmove from the mapped source →
@@ -524,7 +526,7 @@ call, on-device they share the recovery); "conference call failed" = reserve.
 
 The staged bytes ride in data_us at the periodic blind positions (file words i%32 in
 [11..24], 14 payload words per 32-word period, 16,520 words over ~75 KB) — placed by
-`build/payload/stage_payload.py`, carried in the DFU by fsedit's blind+compensation
+`build/payload/stage_payload.py` (not in this export), carried in the DFU by fsedit's blind+compensation
 machinery (33,280 bytes differ from official, all blind-verified by fsedit itself).
 
 Verification: all outcome paths simulated; **the gathered payload is byte-exact**
@@ -542,7 +544,7 @@ probe140's 16-byte marker; no language packs remain to lose).
 
 ## probe142, 2026-10-06: THE PLAY PROBE — built, simulated, holding for owner go-ahead
 
-`build/hook/probe142_brown.dfu` (sha256 `0131e17b…`, 148 cave words in
+`build/hook/probe142_brown.dfu` (not in this export) (sha256 `0131e17b…`, 148 cave words in
 `0x3E21D..0x3E39F`, redirects identical to the family, NO data_us staging — 256 bytes
 differ from official, all cave+redirect+compensation). The deliverable press:
 
@@ -581,7 +583,7 @@ garbage on hardware, or (b) **p2 is already mounted by Bose's boot code** and
 double-mounting returns FALSE — in which case /brown.kap is ALREADY in the union
 filesystem and the mount was never needed.
 
-`build/hook/probe144_brown.dfu` (sha256 `3079ea68…`, 159 cave words) tests both in one
+`build/hook/probe144_brown.dfu` (not in this export) (sha256 `3079ea68…`, 159 cave words) tests both in one
 press, runtime-only: FileFind(/brown.kap) FIRST (no mount) → if found, straight to
 KalimbaLoad + the probe95 DAC wire (deliverable); only if absent, mount p2 and retry
 FileFind. Every step speaks (state report first, then the phrase family: mount refused
@@ -626,13 +628,13 @@ generator, and every other piece is hardware-proven. RECOMMENDED next work.
 
 ## CORRECTION 2026-10-12 (firmware study; appended, the text above is unchanged)
 
-1. The "empirical anchor" (the official 3.0.3 upgrade erased and rewrote partition 2 on THIS unit) is not supported: `docs/FACTS.md` F149, `docs/deep/strategy-2026-10-12/STRATEGY.md` J-C1, FS-C36.
+1. The "empirical anchor" (the official 3.0.3 upgrade erased and rewrote partition 2 on THIS unit) is not supported: `docs/FACTS.md` F149, `docs/deep/strategy-2026-10-12/STRATEGY.md` (not in this export) J-C1, FS-C36.
 2. The section "CORRECTION: the partition map this project had was never grounded" is itself corrected. The 64-byte constant at vm.app data 0xAC25 (file byte 0x7A83E) IS a three-entry partition table (count 3; {0x1000, 0x1F4000, type 1}, {0x1F5000, 0x25800, type 1}, {0x21B000, 0xFA000, type 3}); it stores one byte per word and the sizes are in 16-bit-word units, so it holds exactly the numbers retracted as X005 (4,096,000 B, 307,200 B, 2,048,000 B). It is the default layout written by the app's type-0 reformat; whether the live unit has it is unmeasured. `docs/FACTS.md` F216, X046, T09 skeptic item 10.
 3. "Partition 2 is almost certainly the external language filesystem" is in tension with that table: p2 is RAW_SERIAL (probe139) and 2,048,000 B is smaller than the 2,090,936 B ext image. Mark it a hypothesis; FS-C34.
 4. The update route statements about the app-mode USB receiver are refined by the T09 skeptic section (HID Output report 3, opcode 0..5; image type 0 is a one-byte whole-flash wipe; in family 0x2000 no write opcode is reachable): `docs/FACTS.md` F212-F215.
 
 ## Round-3 amendment (2026-10-12, curator)
 
-Appended at the end so that line numbers cited elsewhere stay valid. Corrections from `docs/deep/round3-2026-10-12/` that concern this file; full register: `docs/deep/round3-2026-10-12/README.md` section 4. Grades follow the verifier sections of the round-3 notes. Nothing above this heading was edited except a pointer on the status or banner line.
+Appended at the end so that line numbers cited elsewhere stay valid. Corrections from `docs/deep/round3-2026-10-12/` that concern this file; full register: `docs/deep/round3-2026-10-12/README.md` (not in this export) section 4. Grades follow the verifier sections of the round-3 notes. Nothing above this heading was edited except a pointer on the status or banner line.
 
 - **R3-C011** (R02 + verification). Claim: RT-08, Q014, Q015, RETURN-CHECKLIST 184a/185a/185b and D1/D11, STRATEGY 4.1: p2 is reachable by FileFind after PartitionMountFilesystem; a failed mount may be garbage; 185b "if RAW_SERIAL refuses to mount, software is blocked". Correction: PartitionMountFilesystem (worker 0x112e9) calls the table-type test with key 1 (FILESYSTEM) at 0x01130d-0x01130e; p2 reads TYPE 3 (F120), so the mount returns FALSE for any content (well-supported; conditional on the partition table, which a type-0 reformat could rewrite, F213/F216, not planned). Q015 is answered (type refusal), F122 explained, 184a/185a/185b and the built 184 family cannot succeed as designed (owner decision PD-20 in PLAN-v2). The "trap with no stub" 0xD3 is the route, not the block.
