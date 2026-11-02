@@ -1,6 +1,6 @@
 # Flash protocol — mandatory, from 2026-10-04
 
-> **2026-10-28 addendum (the gates below are unchanged):** to return to official firmware use the manual sequence with `firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu` (steps: list, info -f, enter-dfu, poll 4022 by elapsed time, download --force with the 45.867 s manifest wait, leave-dfu -f, poll 40fe, info -f, write `build/hook/FLASHED` as STOCK, `tools/csr/dfu_upload.py` readback, 0 of 975,168 filesystem bytes must differ); the stock image does not touch partition 2. The lean product installs from stock with one `tools/flash_probe.py probe380`. After any console event read the 40fe node's LastArrivalDate (a reset moves it).
+> **2026-10-28 addendum (the gates below are unchanged):** to return to official firmware use the manual sequence with `firmware/bose/minnow_3.0.3/Minnow_3.0.3_stack_plus_app.dfu` (steps: list, info -f, enter-dfu, poll 4022 by elapsed time, download --force with the 45.867 s manifest wait, leave-dfu -f, poll 40fe, info -f, write `build/hook/FLASHED` as STOCK, `tools/csr/dfu_upload.py` readback, 0 of 975,168 filesystem bytes must differ); the stock image does not touch partition 2. The lean product installs from stock with one `tools/flash_probe.py probe427`. After any console event read the 40fe node's LastArrivalDate (a reset moves it).
 
 Written after a unit was lost to eleven unverified flashes (and nine presses) in one
 92-minute session. See `docs/POST-MORTEM-2026-10-04.md`. These are gates, not

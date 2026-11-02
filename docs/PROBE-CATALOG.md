@@ -686,3 +686,5 @@ Flash numbers after about #217 in the field log are approximate (some entries re
 | 423-425 | 10-30 | generator fitted to the source recording, then to the hybrid curve (v1-v3) | 425 "perfect" |
 | 426 | 10-30 | probe425 + volume ladder capped at 12 levels | not flashed alone |
 | 427 | 10-30 | probe426 + PWRREL (power-off releases the audio-busy hold at once) | shipped as the product in v0.2.0 |
+| 393 | 10-29 | the payload WRITER of the recorded-noise route (partition-2 write; Bluetooth drop and boot-prompt mute); speaks "switching call" after a real write, "english" if partition 2 already held the payload | shipped as the writer; highest-risk image |
+| 428 | 10-31 | probe387 loop + PWRREL2 (power-off release only when no transform holds the DSP) | shipped as the loop product; tested by the author on one unit |

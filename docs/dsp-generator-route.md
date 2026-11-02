@@ -2,6 +2,7 @@
 
 Purpose: a technical write-up of the route that finally worked (probes 361-380, 2026-10-28), written so that another project on a CSR8670 / BlueCore "gordon" speaker can reuse the findings without re-deriving them.
 Status / last verified: 2026-10-28. Everything marked **proven** was observed on the real speaker (unit 2, firmware 3.0.3.6546) through spoken or recorded read-backs; addresses are DSP data-memory (DM) or program-memory (PM) word addresses of the `sbc_decoder` application.
+Note: this page describes the first 45-word generator (probe380); the shipped, ear-tuned 67-word generator is described in `docs/ear-tuned-eq.md`.
 Read next: `docs/CURRENT-STATE.md`, `docs/topics/audio-path-and-dsp.md`, `docs/topics/probing-method.md`.
 
 ## 1. The idea

@@ -4,8 +4,7 @@ NOTICE
 This repository's own code and documentation are Copyright 2026 the authors
 of this repository, licensed under the Apache License, Version 2.0 (see
 LICENSE). The one exception is `fw/`, which predates the Apache-2.0 choice
-and is kept under its own original MIT license (`fw/LICENSE`), unchanged
-from how it was first published.
+and is kept under its own original MIT license (`fw/LICENSE`).
 
 Third-party material included as-is
 ------------------------------------

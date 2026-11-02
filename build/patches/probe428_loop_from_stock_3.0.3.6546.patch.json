@@ -1,6 +1,6 @@
 {
  "name": "probe428",
- "description": "The loop product (recorded 48 kHz noise from partition 2, needs the writer first) with the connected-device fix and a power-off release that waits for the payload transform (PWRREL2). Gated offline only, not yet run on hardware.",
+ "description": "The loop product (recorded 48 kHz noise from partition 2, needs the writer first) with the connected-device fix and a power-off release that waits for the payload transform (PWRREL2). Tested by the author on one unit (a summary verdict; no per-case log was kept).",
  "source_file": "Minnow_3.0.3_stack_plus_app.dfu",
  "source_size": 1761440,
  "source_sha256": "5ae3bc9655af1b80eb78ebe3610eb58473edd715c885f8cdffc3f1b66be4659e",

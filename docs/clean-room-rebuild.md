@@ -45,7 +45,7 @@ The CSR/Qualcomm ADK and its binary toolchain (the DSP assembler/linker, the ven
 
 ## What this test did not cover
 
-- **Flashing a second, independent unit.** This test rebuilds the image offline and compares hashes; it does not exercise the physical flashing procedure on hardware other than the project's own unit, which remains the single unit this whole project has ever tested against.
+- **Flashing a second, independent unit.** This test rebuilds the image offline and compares hashes; it does not exercise the physical flashing procedure on hardware other than the project's own unit, which this test did not cover (the finished product was separately flashed and read back on four units).
 - **Every rollback image.** Only the current (DSP-generator) product was rebuilt this way; the earlier recorded-noise product (`docs/ring-buffer-fix.md`) was not separately re-verified by this specific test, though it uses the same signed-filesystem mechanism.
 
 ## The follow-up isolated test
