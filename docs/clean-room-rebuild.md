@@ -1,6 +1,6 @@
 # Clean-room reproducibility test
 
-Purpose: a from-scratch rebuild of the current product (the DSP-generator route, `docs/dsp-generator-route.md`), done with only this repository and publicly downloadable files, to answer "could someone other than the original author actually follow this." No device was touched; this is a build-only test.
+Purpose: a from-scratch rebuild of the first release's product, probe380 (the DSP-generator route, `docs/dsp-generator-route.md`), done with only this repository and publicly downloadable files, to answer "could someone other than the original author actually follow this." No device was touched; this is a build-only test.
 
 **If you just want the result and not the from-scratch rebuild**, read `build/patches/` instead (also summarized in the README's "Reproducing this yourself" section): it ships the already-computed byte-diff between the stock firmware and this image, and a small dependency-free script that applies and verifies it — no vendor toolchain needed. Everything below is the harder, from-scratch path that produced that patch in the first place.
 
@@ -29,7 +29,7 @@ Rebuilding the DSP-generator image from this repository, with only publicly down
 4. **The CSR/Qualcomm ADK toolchain** (`docs/toolchain.md`): the DSP assembler/linker/packer and the vendor's own filesystem-build tool. This is vendor tooling this repository cannot redistribute; see `docs/toolchain.md` for exactly which pieces are used and why two ADK versions are needed, and `build/dsp/gen.link.README.md` for the one small linker-script change the DSP generator build needs. The exact command line for turning `build/dsp/noisegen.asm` into the binary `build/dsp/compact.py` consumes (`kas` with `gen.link`, then `klink`, then `kobjcopy -O binary`) is recorded in `tools/README.md`'s entry for `build/dsp/compact.py`.
 5. **No device-specific or unit-specific value is needed anywhere in the build.** No serial number, no Bluetooth link key, no per-device configuration key, and no private signing key. The build uses only the generic stock firmware (the same download anyone with this product can get) and the generic edit list in this repository. The signed-filesystem step does not need Bose's private key or any per-unit secret — see `docs/dfu-signature-scheme.md` for why: the technique edits only byte ranges the device's own verification never reads, so the stock image's own original signature stays valid unchanged.
 
-**Verify your own rebuild** of the current product by comparing
+**Verify your own rebuild** of the first release's product (probe380) by comparing
 ```
 sha256sum build/hook/probe380_brown.dfu
 ```
@@ -46,7 +46,7 @@ The CSR/Qualcomm ADK and its binary toolchain (the DSP assembler/linker, the ven
 ## What this test did not cover
 
 - **Flashing a second, independent unit.** This test rebuilds the image offline and compares hashes; it does not exercise the physical flashing procedure on hardware other than the project's own unit, which this test did not cover (the finished product was separately flashed and read back on four units).
-- **Every rollback image.** Only the current (DSP-generator) product was rebuilt this way; the earlier recorded-noise product (`docs/ring-buffer-fix.md`) was not separately re-verified by this specific test, though it uses the same signed-filesystem mechanism.
+- **Every rollback image.** Only the first release's DSP-generator product (probe380) was rebuilt this way; the current product, probe427, is built the same way from `build/dsp/noisegen425.asm` with `build/hook/assemble_probe427.py` and should hash to `d3de3e67030c599f0ffa780bed0944c2b0521a422ee19a1421cd04adcc5919fc`; the earlier recorded-noise product (`docs/ring-buffer-fix.md`) was not separately re-verified by this specific test, though it uses the same signed-filesystem mechanism.
 
 ## The follow-up isolated test
 

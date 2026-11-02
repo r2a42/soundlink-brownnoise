@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 build/**/*.dfu
 build/**/*.bin
+!build/dsp/noisegen425.bin
 build/**/*.xuv
 build/**/*.fs
 # flash transcripts capture the device's own HW serial (bose-dfu info -f output); never commit your own
@@ -14,3 +15,5 @@ adk/
 build/dsp/gen.link
 # never present in this export, but if you ever create one locally, never commit it either
 private/
+# the third-party bose-dfu.exe goes here (see docs/FLASH-PROTOCOL.md); never commit it
+tools/bose-dfu/

@@ -5,7 +5,7 @@ Status / last verified: 2026-10-31. Evidence was originally in the project's app
 Read next: `docs/dsp-generator-route.md` (how the generator works), `docs/ear-tuned-eq.md` (how the sound and the volume cap were chosen), `docs/FLASH-PROTOCOL.md` (before any flash), `docs/RELEASE-NOTES.md` (what changed since the first export).
 Marks: **proven** = a command output, readback or recording from the lab notebook; **well-supported**; **hypothesis**.
 
-## 1. The three images (v0.2.0)
+## 1. The three images (v0.2.1)
 
 | image | patch file (`build/patches/`) | what it does | risk |
 |---|---|---|---|
@@ -23,7 +23,7 @@ probe427 is flashed on four units (readback after each flash: 0 of 975,168 files
 - The sound was set **by ear against the author's own direct recording of the brown-noise source** (`docs/ear-tuned-eq.md`); the reported verdict was "The noise is perfect".
 - The volume ladder has 12 levels (0-11) instead of 15. The top is about 4.6 dB lower than the old top, because the old top was judged about 4.5 dB too loud and starting to distort. The default level is 6.
 - Power-off while the noise plays: the speaker powers off, and a power-on within a few seconds behaves like stock (before this release it needed two more presses with a gap, see section 4).
-- Kept from earlier: lights dark while the noise plays, stock idle power-off restored after OFF, stock timers cancelled while playing, Bluetooth off while playing, 48 kHz DAC, the connected-device start fix (STARTWAIT, SILENTDROP, NOREWR; `docs/deep/` notes on probes 384-388).
+- Kept from earlier: lights dark while the noise plays, stock idle power-off restored after OFF, stock timers cancelled while playing, Bluetooth off while playing, 48 kHz DAC, the connected-device start fix (STARTWAIT, SILENTDROP, NOREWR; probes 384-388 in `docs/PROBE-CATALOG.md`).
 
 ## 3. What was tested, and how (read this before trusting a line)
 
@@ -32,7 +32,7 @@ probe427 is flashed on four units (readback after each flash: 0 of 975,168 files
 | install | `tools/flash_probe.py`, foreground, full readback | pass on four units |
 | sound | the author's ear against the source recording, several rounds (probes 421-425) | accepted ("perfect") |
 | top volume | the author's ear, then a measured ladder (`docs/ear-tuned-eq.md`) | capped by 4.6 dB, accepted |
-| physical button, power-off while playing, power-on after power-off (the press plan in the docstring of `build/hook/assemble_probe427.py`; run on the first unit) | the author pressing the real buttons | all passed |
+| physical button, power-off while playing, power-on after power-off (the press plan in the docstring of `build/hook/assemble_probe427.py`; run on the author's main unit) | the author pressing the real buttons | all passed |
 | 5-minute run, and an overnight run | the author | went well |
 
 Microphone recordings made through the speaker with a laptop microphone array are **not** used as an acceptance measure any more: that array applies noise suppression that changes the low bass by 5-7 dB between sessions (`docs/ear-tuned-eq.md`).

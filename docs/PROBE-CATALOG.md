@@ -681,10 +681,10 @@ Flash numbers after about #217 in the field log are approximate (some entries re
 | 382-383 | 10-29 | read-only spoken-readout diagnostics (events 0x4070-0x4077) | not products |
 | 384-388 | 10-29 | the connected-device start fix: STARTWAIT, CANCEL670B, SILENTDROP (387 loop, 388 generator), NOREWR | product matrix passed |
 | 389-394 | 10-29 | payload writer revisions; 393 final (guard first, fixed 45 s tick, DROPBT, MUTEBOOT) | shipped as the writer in v0.2.0 |
+| 393 | 10-29 | the payload WRITER of the recorded-noise route (partition-2 write; Bluetooth drop and boot-prompt mute); speaks "switching call" after a real write, "english" if partition 2 already held the payload | shipped as the writer; highest-risk image |
 | 395-420 | 10-29 to 10-30 | generator EQ experiments (stacked state-variable sections, wider loader table, recording-fit tuning) | tuning against a through-speaker recording abandoned, see `docs/ear-tuned-eq.md` |
 | 421-422 | 10-30 | +3 dB / +5 dB tilt probes from 630 Hz | 421 "pretty good" |
 | 423-425 | 10-30 | generator fitted to the source recording, then to the hybrid curve (v1-v3) | 425 "perfect" |
 | 426 | 10-30 | probe425 + volume ladder capped at 12 levels | not flashed alone |
 | 427 | 10-30 | probe426 + PWRREL (power-off releases the audio-busy hold at once) | shipped as the product in v0.2.0 |
-| 393 | 10-29 | the payload WRITER of the recorded-noise route (partition-2 write; Bluetooth drop and boot-prompt mute); speaks "switching call" after a real write, "english" if partition 2 already held the payload | shipped as the writer; highest-risk image |
 | 428 | 10-31 | probe387 loop + PWRREL2 (power-off release only when no transform holds the DSP) | shipped as the loop product; tested by the author on one unit |

@@ -26,7 +26,7 @@ independently verifiable output; use this one if you just want the result, the o
 you want to understand, verify, or modify how it was built.
 
 Usage:
-    python build/patches/apply_patch.py build/patches/probe380_from_stock_3.0.3.6546.patch.json STOCK.dfu OUT.dfu
+    python build/patches/apply_patch.py build/patches/probe427_product_from_stock_3.0.3.6546.patch.json STOCK.dfu OUT.dfu
 """
 import hashlib
 import json
