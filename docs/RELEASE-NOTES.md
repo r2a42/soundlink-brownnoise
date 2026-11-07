@@ -1,5 +1,18 @@
 # Release notes
 
+## v0.2.5 (2026-11-07)
+
+Fixes from a third independent pre-publication review. The three patches are byte-identical to v0.2.4.
+
+- README: the unit count is now consistent with the state pages (four working units, probe427 flashed and read back on all four); the lost first unit is described as the owner reports it (a flash cancelled halfway, after skipped gates; the post-mortem still records the exact cause as not fully established); a warning not to interrupt a flash; and the writer's permanent erase of the factory voice-prompt (language) data is now stated next to its brick warning.
+- `tools/install_from_stock.py --two-image` now requires typing `ERASE-P2` before the writer is flashed (`--yes` no longer skips it).
+- `.gitignore`: `build/hook/*_cmd.txt` (it records the absolute path of your Python), `*.wav`, `readback_*.bin`; a duplicate block removed.
+- `docs/FLASH-PROTOCOL.md`: the shipped word lists are no longer marked "not in this export". `tools/README.md`: the install default is probe427. `NOTICE`: two more derived items listed. `docs/NOT-IN-EXPORT.md`: notes on private memory/`CLAUDE.md` citations and directory references.
+
+## v0.2.4 (2026-11-02)
+
+Documentation only. Files cited by the archival documents that are not part of this export are marked "(not in this export)" at their first mention and listed in `docs/NOT-IN-EXPORT.md`; the unreferenced `assemble_probe387.py` and `probe387_words.json` were removed; the blind-byte wording (30 of every 64 bytes never enter the hash, 29 safely writable) was clarified.
+
 ## v0.2.3 (2026-11-02)
 
 The writer (probe393) and the loop (probe428) can now be rebuilt from source here, like the product. The three patches are byte-identical to v0.2.2.
