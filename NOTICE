@@ -60,7 +60,7 @@ by others working with this chip family.
 `build/hook/slack_pool.json` holds derived linear-algebra coefficients (a digest
 function's measured per-position contribution, computed by probing the vendor
 build tool as a black-box oracle — see `docs/dfu-signature-scheme.md`), not a
-copy of any stock firmware bytes. Separately, `docs/FACTS.md` (fact F263) quotes
+copy of any stock firmware bytes. `tools/bose-stubs.json` maps trap names to the stub numbers of the stock firmware (names and numbers, derived by this project), and `fw/csr8670/brown_noise.psr` copies two persistent-store default values (12 words, initial PIO state) from the stock firmware's PS keys, for the abandoned early route in `fw/`; both are interface facts, not creative content. Separately, `docs/FACTS.md` (fact F263) quotes
 one 10-word official persistent-store default value, identical across every
 released firmware version for this product (not device-specific, not secret —
 config defaults, not content), for documentation completeness.

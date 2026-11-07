@@ -240,7 +240,7 @@ work.** Follow these in order; do not skip to the button combo.
 ## What you need on disk before step 3
 
 - `tools/bose-dfu/bose-dfu.exe` (not in this export) (obtain separately; see `NOTICE`).
-- `build/hook/probeNNN_brown.dfu` (not in this export) and `build/hook/probeNNN_words.json` (not in this export) (built in step 1).
+- `build/hook/probeNNN_brown.dfu` (not in this export) and `build/hook/probeNNN_words.json` (shipped for probe393, probe427 and probe428; built in step 1).
 - The official stock firmware, if this is a recovery flash or your first flash from factory
   state (`docs/clean-room-rebuild.md` says where to get it and its expected hash).
 - `build/hook/FLASHED` (a starter copy ships in this repository; the script creates one if

@@ -79,6 +79,9 @@ if two_image:
     if dry:
         print('dry run: images present, nothing flashed')
         sys.exit(0)
+    print("WARNING: the writer erases and rewrites the speaker's partition 2 at runtime, which permanently destroys the factory voice-prompt (language) data (no restore path in this export). A failure here can be an unrecoverable brick.")
+    if input('Type ERASE-P2 to continue (anything else stops): ').strip() != 'ERASE-P2':
+        sys.exit('STOP: not acknowledged; nothing was flashed')
     run_flash(writer)
     print('\nSWITCH the speaker on with its power button if it is off (a flash cannot power it on). The stock boot says "battery 100%" - that is NOT the writer.')
     print('Press nothing else. Within about 10 to 60 s after the boot the writer speaks "switching call" (it wrote p2)')
